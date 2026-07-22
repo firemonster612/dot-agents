@@ -46,7 +46,7 @@ When uncertain, prefer: Tailwind, TypeScript, Bun, React, Convex, Clerk, Vercel.
 - Multi-ticket runs keep a **progress ledger** (`.scratch/<feature-slug>/progress.md`, one line per completed ticket with its issue number and commit range, e.g. `Ticket #42: complete (a1b2c3d..d4e5f6a)`). After compaction, trust the ledger, the tracker's issue states, and `git log` over your own recollection — never re-dispatch a ticket the ledger or tracker marks complete.
 - When a review wave returns findings, dispatch **one fix agent with the full findings list**, not one fixer per finding — per-finding fixers each rebuild context and re-run suites.
 - Never pre-judge findings in a reviewer's dispatch prompt ("don't flag X", "treat as minor at most") — let the reviewer raise it, then adjudicate the finding yourself afterward.
-- A delegate's "success" report is a claim, not evidence: check the diff yourself before relaying it (see the `verification-before-completion` skill).
+- A delegate's "success" report is a claim, not evidence: check the diff yourself before relaying it.
 
 ## Picking the right models for workflows and subagents
 

@@ -15,7 +15,7 @@ Guide completion of development work by presenting clear options and handling th
 
 ### Step 1: Verify Tests
 
-Before presenting options, run the project's test suite and read the output (see `verification-before-completion`).
+Before presenting options, run the project's test suite and read the output yourself — a passing exit code is not evidence until you have read what actually ran.
 
 **If tests fail:** show the failures and stop — no merge/PR until they pass.
 

@@ -52,7 +52,7 @@ Keep everything through `to-tickets` in ONE unbroken context window. Each ticket
 - **`diagnosing-bugs`** — tight red loop before theorising. (`/fix-bug-semi-auto` drives it.)
 - **`resolving-merge-conflicts`** — mid-merge/rebase, resolve by intent, never `--abort`.
 - **`grilling`** / **`grill-with-docs`** — the interview primitive / its docs-writing wrapper.
-- **`deep-research`** — cited multi-source web research.
+- **`deep-research`** — cited multi-source web research. Harness-provided (Claude Code plugin), not part of this repo — where it's absent, dispatch a Codex research delegate per the model rubric instead.
 - **`teach`** — long-running learning workspace in the current directory.
 - **`writing-great-skills`** — the reference for editing this skill set itself.
 - **`finishing-a-development-branch`** — the merge/PR/keep/discard menu at the end of any branch.
