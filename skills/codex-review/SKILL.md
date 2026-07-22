@@ -7,79 +7,7 @@ description: Use when the user asks to have Codex or GPT review work, when the m
 
 **If Codex/GPT models are available as native subagents, use two native GPT subagents in parallel. Do not use the CLI.** The CLI instructions below are for agents that can only shell out, or wrapper subagents whose job is to run Codex.
 
-Use Codex as an independent reviewer when the user wants a second pass or a change is broad enough to benefit from another perspective. Do not delegate merely to avoid reading the code. Treat Codex's output as evidence, not authority.
-
-## Process
-
-### 1. Pin and validate the review target
-
-Resolve the target before delegating. Capture the exact command once so both axes inspect the same change:
-
-- Branch, tag, or base ref: verify it with `git rev-parse <fixed-point>`, then use `git diff <fixed-point>...HEAD` and `git log <fixed-point>..HEAD --oneline`. The three-dot diff compares against the merge-base.
-- Commit: verify the SHA, then use `git show <sha>`.
-- Uncommitted work: use `git status --porcelain`, `git diff HEAD`, and include untracked files explicitly.
-- Specific files: name the paths and the comparison point.
-
-Fail early if the ref is invalid or the target is empty. Do not make two reviewers rediscover a bad target.
-
-### 2. Find the spec source
-
-Build the Spec axis from the best available source, in this order:
-
-1. Requirements or a spec path supplied by the user.
-2. Issues or PRs referenced by commit messages; use the repository's documented issue-tracker workflow when present.
-3. A matching PRD or spec under `docs/`, `specs/`, or `.scratch/`.
-
-If no reliable spec exists, skip the Spec reviewer and report `No spec available`. Never invent requirements from the implementation.
-
-### 3. Find the standards sources
-
-Identify all instructions that apply to the changed files, including scoped `AGENTS.md` or `CLAUDE.md` files, `CONTRIBUTING.md`, coding standards, architecture documents, and test conventions.
-
-The Standards axis also checks correctness, regressions, security, and missing or weak tests. Apply these additional review lenses when available:
-
-- `codebase-design` for deep modules, clean seam placement, small interfaces, and interface-level testability.
-- `write-less` for over-engineering, unnecessary code or tests, and overcomplicated tests.
-- `typescript-beautify` for TypeScript or JavaScript codebases.
-
-Keep the review read-only. If a lens is unavailable, state that and continue.
-
-#### Fowler smell baseline
-
-Repository rules override this baseline. Treat every smell as a labelled judgement call, never a hard violation, and skip checks already enforced by tooling.
-
-- **Mysterious Name** — a name does not reveal what a value, function, or type means; rename it, or revisit a design that has no honest name.
-- **Duplicated Code** — the same logic shape appears in multiple changed locations; extract the shared shape.
-- **Feature Envy** — code reaches into another object's data more than its own; move the behaviour toward the data it uses.
-- **Data Clumps** — the same fields or parameters repeatedly travel together; introduce one meaningful type.
-- **Primitive Obsession** — a primitive stands in for a domain concept; model the concept explicitly.
-- **Repeated Switches** — the same conditional dispatch recurs; centralize it or use polymorphism.
-- **Shotgun Surgery** — one logical change requires scattered edits; gather the behaviour behind one module or seam.
-- **Divergent Change** — one module changes for unrelated reasons; split the responsibilities.
-- **Speculative Generality** — abstractions or hooks serve no current requirement; remove or inline them.
-- **Message Chains** — callers navigate a long object chain; hide the traversal behind a meaningful operation.
-- **Middle Man** — a type or function mostly delegates; call the real abstraction directly.
-- **Refused Bequest** — an implementation ignores most inherited behaviour; prefer composition or a narrower contract.
-
-### 4. Run two isolated reviewers in parallel
-
-Run one Standards reviewer and, when a spec exists, one Spec reviewer. Give both the exact target command and commit list. Do not let either see the other's report.
-
-The Standards prompt must include the applicable standards sources and the smell baseline. Ask for:
-
-- concrete bugs, regressions, security issues, and meaningful test gaps;
-- every documented-standard violation, citing the source file and rule;
-- possible baseline smells, labelled as judgement calls and tied to a changed hunk;
-- severity, file and line, concrete failure mode, and a practical fix direction for every finding.
-
-The Spec prompt must include the spec path or contents. Ask for:
-
-- missing or partial requirements;
-- behaviour not requested by the spec (scope creep);
-- requirements that appear implemented but behave incorrectly;
-- the source requirement and changed file/line for every finding.
-
-Tell both reviewers: `Do not edit files. Work directly; do not delegate to other agents or subagents. Prioritize findings over summary. If there are no substantive findings, say so and identify residual test gaps.`
+**Follow the `review-core` skill for the process: target pinning, spec and standards discovery, the smell baseline, the two parallel reviewers, and aggregation.** Everything below is specific to the Codex CLI.
 
 ## Codex CLI invocation
 
@@ -110,12 +38,8 @@ wait "$STANDARDS_PID"
 wait "$SPEC_PID"
 ```
 
-Always feed prompts on stdin and ensure stdin reaches EOF. Avoid background processes with inherited stdin; use `</dev/null>` only when no prompt stream is required. Run inside a Git repository or pass `-C <repo>`; use `--skip-git-repo-check` only for deliberate non-repository work. Keep stdout and stderr separate, inspect both exit codes, and poll artifact files when reviews can exceed the shell timeout.
+## CLI edge cases
 
-## Aggregate and report
-
-Inspect every cited hunk before relaying a finding. Within each axis, distinguish confirmed findings from suggestions you could not verify.
-
-Present separate `## Standards` and `## Spec` sections. Do not merge or rerank findings across axes. End with the finding count and worst issue within each axis; do not pick one overall winner. If an axis has no findings, say so. If no spec was available, say what target was reviewed and explicitly mark the Spec axis as skipped.
-
-If `codex` is unavailable or fails, report the exact failure and offer to perform the review directly.
+- Always feed prompts on stdin and ensure stdin reaches EOF. Avoid background processes with inherited stdin; use `</dev/null` only when no prompt stream is required.
+- Run inside a Git repository or pass `-C <repo>`; use `--skip-git-repo-check` only for deliberate non-repository work.
+- Keep stdout and stderr separate, inspect both exit codes, and poll artifact files when reviews can exceed the shell timeout.

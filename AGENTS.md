@@ -2,8 +2,6 @@
 
 Use oxfmt and oxlint when initing react projects instead of eslint and Prettier.
 
-when starting new projects, adding new features to a codebase use the improve-codebase-achetecture skill to maintain the good archetecture of the codebase.
-
 please, when developing web apps or using web tech, do not user native browser prompts/pop ups
 
 when you want to run a command with sudo on an interactive machine with a graphical desktop env on linux, use pkexec
@@ -45,7 +43,7 @@ When uncertain, prefer: Tailwind, TypeScript, Bun, React, Convex, Clerk, Vercel.
 
 - Hand artifacts to subagents and delegates as **files, not pasted text**: write the task brief and the diff (`git diff -U10 BASE..HEAD > file`) to a scratch file and pass the path. Pasted context stays resident in the orchestrator's context forever; a file path costs nothing.
 - **Record the base SHA before dispatching an implementer.** Review and diff `BASE..HEAD` — never `HEAD~1`, which silently drops all but the last commit of a multi-commit task.
-- Multi-ticket runs keep a **progress ledger** (`.scratch/<feature-slug>/progress.md`, one line per completed ticket with its commit range, e.g. `Ticket 03: complete (a1b2c3d..d4e5f6a, review clean)`). After compaction, trust the ledger and `git log` over your own recollection — never re-dispatch a ticket the ledger marks complete.
+- Multi-ticket runs keep a **progress ledger** (`.scratch/<feature-slug>/progress.md`, one line per completed ticket with its issue number and commit range, e.g. `Ticket #42: complete (a1b2c3d..d4e5f6a)`). After compaction, trust the ledger, the tracker's issue states, and `git log` over your own recollection — never re-dispatch a ticket the ledger or tracker marks complete.
 - When a review wave returns findings, dispatch **one fix agent with the full findings list**, not one fixer per finding — per-finding fixers each rebuild context and re-run suites.
 - Never pre-judge findings in a reviewer's dispatch prompt ("don't flag X", "treat as minor at most") — let the reviewer raise it, then adjudicate the finding yourself afterward.
 - A delegate's "success" report is a claim, not evidence: check the diff yourself before relaying it (see the `verification-before-completion` skill).

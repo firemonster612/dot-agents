@@ -7,21 +7,9 @@ description: Use when the user asks to delegate implementation to Claude, when t
 
 **If you already have access to Claude models via subagents — meaning you do not need the CLI (for example, you are running in Claude Code, where Agent/Workflow spawn Claude subagents natively) — use the subagents. Do not use the CLI.** The CLI instructions below are for agents, such as Codex, that can only shell out.
 
-Use Claude as a separate implementation agent for bounded code changes. You remain responsible for scoping the task, reviewing the diff, running or checking verification, and explaining the final result.
+**Follow the `implement-core` skill for the shared contract: the scoping workflow, the prompt requirements, and the post-run review.** Everything below is specific to the Claude CLI.
 
-Do not let Claude commit, push, deploy, or edit global config unless the user explicitly asked for that.
-
-## Workflow
-
-1. Pin the current state with `git status --short` and note any user changes already present.
-2. Define the implementation scope: files or behavior to change, files to avoid, constraints, and verification commands.
-3. Create a temporary artifact directory for the prompt and report.
-4. Run `claude -p` with edit permissions and the verification commands allowlisted.
-5. After Claude exits, inspect `git status` and `git diff`, plus `.permission_denials` in the result envelope.
-6. Run the cheapest reliable verification yourself when practical.
-7. Report what Claude changed, what you verified, and any remaining risks.
-
-Use this command shape (verified):
+## Command shape (verified)
 
 ```bash
 ARTIFACT_DIR="$(mktemp -d "${TMPDIR:-/tmp}/claude-implement.XXXXXX")"
@@ -29,7 +17,7 @@ PROMPT="$ARTIFACT_DIR/prompt.md"
 RESULT="$ARTIFACT_DIR/result.json"
 REPORT="$ARTIFACT_DIR/report.md"
 
-# Write a self-contained prompt to $PROMPT, then run FROM INSIDE THE REPO
+# Write a self-contained prompt to $PROMPT (per implement-core), then run FROM INSIDE THE REPO
 # (there is no -C flag; claude uses the shell's cwd):
 cd "$REPO" && claude -p \
   --model sonnet --effort medium \
@@ -63,60 +51,10 @@ jq '{is_error, num_turns, total_cost_usd, session_id, permission_denials}' "$RES
 - Keep stdout and stderr separate: the JSON envelope goes to stdout, but shell-init noise and errors go to stderr and will corrupt the JSON if merged.
 - Exit code 0 on success, non-zero with the message on stderr on failure. Also check `.is_error` and `.permission_denials` — a "successful" exit can still be a run that got blocked and gave up.
 - Headless mode loads the machine's user/project settings, CLAUDE.md files, hooks, and MCP servers, so default behavior varies per machine. The explicit flags above make runs deterministic; `--strict-mcp-config` keeps unrelated MCP servers out of the session. Without `--permission-mode`, recent versions use an "auto" classifier that is nondeterministic and aborts after repeated blocks.
-- The machine's global CLAUDE.md may instruct Claude to orchestrate or delegate work to other agents (including Codex). Always tell the delegate in the prompt: "Work directly; do not delegate to other agents, subagents, or codex." Otherwise you can recurse.
+- The machine's global CLAUDE.md may instruct Claude to orchestrate or delegate work to other agents (including Codex). The prompt's "work directly; do not delegate" line (from `implement-core`) prevents recursion — never omit it.
 - Do NOT use `--bare` to isolate settings: it drops OAuth/keychain auth and only accepts `ANTHROPIC_API_KEY`, which breaks subscription-authenticated machines.
 - `-p` skips the workspace trust dialog and silently ignores invalid settings files — only run it in repos you trust.
 - Auth uses the machine's logged-in credentials. "Not logged in" means credentials are missing/expired — report it, don't retry. A stale `ANTHROPIC_API_KEY` env var silently overrides subscription auth.
 - Long runs can exceed your shell's command timeout. Run in the background writing to `$RESULT`, then poll for the file.
 - Iterating on the same task: sessions persist by default. Capture `.session_id` from the envelope and continue with `claude -p --resume <session-id> "fix the failing test" ...` — the delegate keeps its context. Re-pass the same permission and model flags; they are per-invocation, not per-session.
 - `--add-dir <path>` grants access to directories outside the repo (e.g. a fixtures directory) without widening permissions elsewhere.
-
-## Prompt Requirements
-
-Tell Claude:
-
-- The exact implementation goal and acceptance criteria.
-- The repo path and current branch context if relevant.
-- Which existing patterns, files, or tests to inspect first.
-- Files or behavior that must not be changed.
-- That it must preserve unrelated user changes.
-- That it must not commit, push, deploy, or edit global config.
-- That it must work directly and not delegate to other agents, subagents, or codex.
-- Where a test framework exists: to write a failing test that specifies the change before implementing, and include the red→green evidence (both runs) in the report.
-- Which verification commands to run (matching your `--allowedTools` entries), or to explain why they were skipped.
-- To write a concise final report with files changed, verification, and unresolved questions — its final message becomes `$REPORT`.
-
-Keep the task bounded. If the requested work bundles several substantial changes, split it into separate Claude runs or ask the user to choose the first scope.
-
-## Example Prompt
-
-```text
-You are implementing a scoped change. Work directly; do not delegate to other agents, subagents, or codex.
-
-Repository: /absolute/path/to/repo
-
-Goal:
-- Add keyboard navigation to the command palette.
-
-Acceptance criteria:
-- ArrowUp and ArrowDown move the highlighted item.
-
-Constraints:
-- Do not commit, push, or edit anything outside this repo.
-- Preserve unrelated uncommitted changes.
-
-Verification:
-- pnpm test -- command-palette
-
-Report:
-- Files changed
-- Behavioral summary
-- Verification run and result
-- Anything blocked or uncertain
-```
-
-## Review After Claude
-
-Always inspect Claude's diff before telling the user the work is done. Revert only Claude-created mistakes when you are sure they are not user changes. If Claude leaves the repo in a worse state or changes unrelated files, stop and report the issue with the diff summary.
-
-If `claude` is not installed or the command fails, report the error and offer to implement the change directly instead.
