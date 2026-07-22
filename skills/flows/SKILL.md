@@ -39,12 +39,14 @@ Keep everything through `to-tickets` in ONE unbroken context window. Each ticket
 - **`domain-modeling`** — the glossary (`CONTEXT.md`) and ADR discipline.
 - **`write-less`** — anti-over-engineering: load BEFORE implementing, and use as the review lens. (Prefer this over `simplify`.)
 - **`typescript-beautify`** — TS/JS style. Only in TypeScript projects.
+- **`tdd`** — the red-green loop and what makes a good test; `implement-core` holds delegates to its rules.
 
 ## Delegation & review (model-invoked)
 
 - **`implement-core`** — the delegate contract; **`codex-implementation`** / **`claude-implement`** carry the CLI mechanics. Route by the model rubric in AGENTS.md.
 - **`review-core`** — the two-axis review process; **`codex-review`** / **`claude-review`** carry the CLI mechanics.
 - **`review-loop`** — the dual-reviewer (Claude + GPT) loop at the end of a change.
+- **`verification-before-completion`** — the gate before any "done" claim: run the verification, read the output, map claim → evidence.
 
 ## Standalones
 

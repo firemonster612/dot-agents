@@ -115,6 +115,6 @@ The end-to-end behaviour this ticket makes work, from the user's perspective —
 
 In either form, avoid specific file paths or code snippets — they go stale fast. Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it and note briefly that it came from a prototype. Trim to the decision-rich parts — not a working demo, just the important bits. Seam signatures that dependent tickets must agree on qualify for the same exception.
 
-Work the frontier one ticket at a time with `/implement`, one subagent per ticket.
+Work the frontier one ticket at a time — one implementer subagent per ticket, dispatched per the `implement-core` contract.
 
 Each ticket is implemented in a fresh session to stay inside the context window's smart zone. The fresh session's context package is: the **master spec**, the **ticket itself**, and **what's already implemented** — the progress ledger plus the code/commits of the ticket's blockers. This is why every ticket carries a spec reference: the implementing session has no conversation history to fall back on, and the spec is what carries the project-wide constraints.
