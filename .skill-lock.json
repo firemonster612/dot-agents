@@ -1,0 +1,208 @@
+{
+  "version": 3,
+  "skills": {
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/anthropics/skills.git",
+      "skillPath": "skills/frontend-design/SKILL.md",
+      "skillFolderHash": "928950704df8a8b885c03de5da626331e6f29cf8",
+      "installedAt": "2026-02-05T18:08:37.590Z",
+      "updatedAt": "2026-02-05T18:08:37.590Z"
+    },
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/vercel-labs/skills.git",
+      "skillPath": "skills/find-skills/SKILL.md",
+      "skillFolderHash": "c2f31172b6f256272305a5e6e7228b258446899f",
+      "installedAt": "2026-02-05T18:08:44.955Z",
+      "updatedAt": "2026-02-05T18:08:44.955Z"
+    },
+    "caveman": {
+      "source": "juliusbrussee/caveman",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/juliusbrussee/caveman.git",
+      "skillPath": "caveman/SKILL.md",
+      "skillFolderHash": "b1f418f4e7cbee5d18c209a48e3475132b49e7b1",
+      "installedAt": "2026-04-10T16:39:20.967Z",
+      "updatedAt": "2026-04-10T16:39:20.967Z"
+    },
+    "improve-codebase-architecture": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/engineering/improve-codebase-architecture/SKILL.md",
+      "skillFolderHash": "3ad8fa787b3b9b622d1f5a3d0afc27812ac782fa",
+      "pluginName": "mattpocock-skills",
+      "installedAt": "2026-04-29T19:06:09.224Z",
+      "updatedAt": "2026-04-29T19:06:09.224Z"
+    },
+    "grill-me": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/productivity/grill-me/SKILL.md",
+      "skillFolderHash": "2a1ad17028306ebe45f0e49703fa28b9b2e7f499",
+      "pluginName": "mattpocock-skills",
+      "installedAt": "2026-04-29T19:36:19.661Z",
+      "updatedAt": "2026-04-29T19:36:19.661Z"
+    },
+    "ui-ux-pro-max": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill.git",
+      "skillPath": ".claude/skills/ui-ux-pro-max/SKILL.md",
+      "skillFolderHash": "75e1acaafe8b08e59d4b86fc253ac7873aff6bba",
+      "pluginName": "ui-ux-pro-max",
+      "installedAt": "2026-04-29T21:24:50.278Z",
+      "updatedAt": "2026-04-29T21:24:50.278Z"
+    },
+    "simplify": {
+      "source": "brianlovin/claude-config",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/brianlovin/claude-config.git",
+      "skillPath": "skills/simplify/SKILL.md",
+      "skillFolderHash": "83566973442dc05bcf5abbe83053e8a8e5f50b6b",
+      "installedAt": "2026-05-01T19:40:28.691Z",
+      "updatedAt": "2026-07-09T22:33:19.521Z"
+    },
+    "playwriter": {
+      "source": "remorses/playwriter",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/remorses/playwriter.git",
+      "skillPath": "skills/playwriter/SKILL.md",
+      "skillFolderHash": "e6cd918f821d35a79dca0277d197df667a240753",
+      "installedAt": "2026-05-06T13:26:46.264Z",
+      "updatedAt": "2026-05-06T13:26:46.264Z"
+    },
+    "human-writing": {
+      "source": "firemonster612/human-writing-skill",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/firemonster612/human-writing-skill.git",
+      "skillPath": "skills/human-writing/SKILL.md",
+      "skillFolderHash": "2cd0de9f01c54bcc45e26687df196d51ba707325",
+      "installedAt": "2026-05-08T09:20:29.567Z",
+      "updatedAt": "2026-05-08T09:20:29.567Z"
+    },
+    "kde-rdp-desktop": {
+      "source": "firemonster612/kli",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/firemonster612/kli.git",
+      "skillPath": ".agents/skills/kde-rdp-desktop/SKILL.md",
+      "skillFolderHash": "2eb89d64602f02b5ebaa3676b9cb52ffd02136bc7f9104c448ff3e6cfe875b41",
+      "installedAt": "2026-05-14T08:27:56.450Z",
+      "updatedAt": "2026-05-23T11:17:40.085Z"
+    },
+    "shadcn": {
+      "source": "shadcn/ui",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/shadcn/ui.git",
+      "skillPath": "skills/shadcn/SKILL.md",
+      "skillFolderHash": "a8404703769866faf15bee897c9ae6e252ac2d35",
+      "installedAt": "2026-05-15T20:09:46.246Z",
+      "updatedAt": "2026-05-15T20:09:46.246Z"
+    },
+    "teach": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/productivity/teach/SKILL.md",
+      "skillFolderHash": "fdc61615b4d56a04d88a69a135337f0cad9df235",
+      "pluginName": "mattpocock-skills",
+      "installedAt": "2026-06-09T16:10:56.340Z",
+      "updatedAt": "2026-06-09T16:10:56.340Z"
+    },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/pbakaus/impeccable.git",
+      "skillPath": ".agents/skills/impeccable/SKILL.md",
+      "skillFolderHash": "511c4acd310ff064ee65c6d04d96cebeca34578f",
+      "installedAt": "2026-06-21T05:49:43.954Z",
+      "updatedAt": "2026-06-21T05:49:43.954Z"
+    },
+    "html": {
+      "source": "plannotator/effective-html",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/plannotator/effective-html.git",
+      "skillPath": "skills/html/SKILL.md",
+      "skillFolderHash": "d0972373c2650be81ec47175400a138911342c26",
+      "pluginName": "plannotator-effective-html",
+      "installedAt": "2026-06-25T09:19:12.749Z",
+      "updatedAt": "2026-06-25T09:19:12.749Z"
+    },
+    "html-diagram": {
+      "source": "plannotator/effective-html",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/plannotator/effective-html.git",
+      "skillPath": "skills/html-diagram/SKILL.md",
+      "skillFolderHash": "8d2ed0ce2394210e4e3feba5ce14fe8c84439125",
+      "pluginName": "plannotator-effective-html",
+      "installedAt": "2026-06-25T09:19:12.750Z",
+      "updatedAt": "2026-06-25T09:19:12.750Z"
+    },
+    "html-plan": {
+      "source": "plannotator/effective-html",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/plannotator/effective-html.git",
+      "skillPath": "skills/html-plan/SKILL.md",
+      "skillFolderHash": "85777e0c36ea91c8a2d05e0840a7965a8209639f",
+      "pluginName": "plannotator-effective-html",
+      "installedAt": "2026-06-25T09:19:12.753Z",
+      "updatedAt": "2026-06-25T09:19:12.753Z"
+    },
+    "to-spec": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/engineering/to-spec/SKILL.md",
+      "skillFolderHash": "bf698b96b5d8798d110d9872e32b9310728555b0",
+      "pluginName": "mattpocock-skills",
+      "installedAt": "2026-07-16T10:41:33.179Z",
+      "updatedAt": "2026-07-16T10:41:33.179Z"
+    },
+    "to-tickets": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/engineering/to-tickets/SKILL.md",
+      "skillFolderHash": "5467d7a37ef365ed43ebe6eb466d6e952be881b8",
+      "pluginName": "mattpocock-skills",
+      "installedAt": "2026-07-16T10:41:57.073Z",
+      "updatedAt": "2026-07-16T10:41:57.073Z"
+    },
+    "grill-with-docs": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/engineering/grill-with-docs/SKILL.md",
+      "skillFolderHash": "5fdcdeedf2d0c73b3ecb1da0a464dd885590f8d6",
+      "pluginName": "mattpocock-skills",
+      "installedAt": "2026-07-16T10:42:16.185Z",
+      "updatedAt": "2026-07-16T10:42:16.185Z"
+    }
+  },
+  "dismissed": {
+    "findSkillsPrompt": true
+  },
+  "lastSelectedAgents": [
+    "amp",
+    "antigravity",
+    "antigravity-cli",
+    "cline",
+    "codex",
+    "cursor",
+    "deepagents",
+    "gemini-cli",
+    "github-copilot",
+    "kimi-code-cli",
+    "opencode",
+    "warp",
+    "zed",
+    "claude-code",
+    "kilo",
+    "roo",
+    "pi"
+  ]
+}

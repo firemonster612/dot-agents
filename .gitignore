@@ -1,0 +1,6 @@
+# Local link to a separate, machine-specific project.
+skills/hydra-sync
+
+# Separate git repos, linked in place (own remotes/history).
+skills/typescript-beautify
+skills/write-less
