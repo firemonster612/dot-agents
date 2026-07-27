@@ -31,17 +31,28 @@ When uncertain, prefer: Tailwind, TypeScript, Bun, React, Convex, Clerk, Vercel.
 
 ## Behaviour
 
+- Do the work yourself or delegate it, whichever actually serves the task — you decide, per task. When I want subagents I'll ask for them.
 - always prefer your native subagent primitive/s rather than calling subagents via the shell.
-
-- Always default to being an orchestrator unless you are explicitly told that you are an implementer, a worker, or something else. As the orchestrator, delegate tasks to subagents or use workflows rather than doing the majority of the work yourself, BUT only when it would make the task MORE cost-efficient (by using cheaper subagents), FASTER (by parallelizing work), or of better quality (By doing the review loop below for example or using a smarter model etc.).
-
-**Take-away**: Always default to being an ORCHESTRATOR unless explicitly told that you are an IMPLEMENTER, a WORKER, or something else, and tell subagents what role they play.
-
 - Whenever you are going to spin off another model, subagent, or workflow to do anything, always consult the model-selection rubric below on which model to choose. Do not default to your own native model family just because it is convenient.
+
+## When delegating pays
+
+Three reasons, and they're the whole list:
+
+- **Cheaper** — bulk or mechanical work that a lower tier does just as well, or exploration whose findings are worth more than the context they'd cost you to gather yourself.
+- **Faster** — genuinely independent work that can run in parallel. Serial steps dressed up as parallel ones are slower, not faster.
+- **Better** — an independent reviewer who hasn't seen my reasoning, or a fresh context per ticket on a long multi-ticket run.
+
+**Review is the one standing exception: never let the only review of a change be by whoever wrote it.** Independence is the entire mechanism — see the `review-loop` skill. Everything else is a judgement call.
+
+Don't delegate when writing the brief would cost more context than doing the work, when the task is small enough that a round trip dominates, or when I asked a question rather than for a change.
 
 ## Delegation hygiene
 
-- Hand artifacts to subagents and delegates as **files, not pasted text**: write the task brief and the diff (`git diff -U10 BASE..HEAD > file`) to a scratch file and pass the path. Pasted context stays resident in the orchestrator's context forever; a file path costs nothing.
+When you do delegate:
+
+- Point delegates at the worker-facing skills (`writing-code`, `reviewing-code`) by path rather than transcribing their rules into the prompt — a delegate can read files, and a pasted contract drifts from the real one.
+- Hand artifacts as **files, not pasted text**: write the task brief and the diff (`git diff -U10 BASE..HEAD > file`) to a scratch file and pass the path. Pasted context stays resident in your context forever; a file path costs nothing.
 - **Record the base SHA before dispatching an implementer.** Review and diff `BASE..HEAD` — never `HEAD~1`, which silently drops all but the last commit of a multi-commit task.
 - Multi-ticket runs keep a **progress ledger** (`.scratch/<feature-slug>/progress.md`, one line per completed ticket with its issue number and commit range, e.g. `Ticket #42: complete (a1b2c3d..d4e5f6a)`). After compaction, trust the ledger, the tracker's issue states, and `git log` over your own recollection — never re-dispatch a ticket the ledger or tracker marks complete.
 - When a review wave returns findings, dispatch **one fix agent with the full findings list**, not one fixer per finding — per-finding fixers each rebuild context and re-run suites.
@@ -50,24 +61,22 @@ When uncertain, prefer: Tailwind, TypeScript, Bun, React, Convex, Clerk, Vercel.
 
 ## Picking the right models for workflows and subagents
 
-### Model routing — answer two questions before every spawn (subagent, workflow, or CLI)
+### Model routing — answer two questions for every spawn (subagent, workflow, or CLI)
 
 This is the routing procedure. Everything below it in this section (rankings, effort guidance, mechanics) is reference for executing the decision — never an alternative way to make it.
 
 **Q1 — Family.** Does the output need taste (user-facing UI, copy, API/SDK design) or peak judgment (ambiguous architecture, high-stakes review)?
 
-- **No → GPT-5.6 via Codex.** This is the DEFAULT for all delegated work: exploration, investigation, implementation, debugging, analysis, bulk work.
-- **Yes → Claude** (opus-4.8 or fable-5, via the Agent/Workflow model param). sonnet-5 exists only as a thin wrapper for Codex calls inside workflows.
+- **Yes → Claude** (opus-5 or fable-5, via the Agent/Workflow model param). sonnet-5 exists mainly as a thin wrapper for Codex calls inside workflows.
+- **No → GPT-5.6 via Codex** for exploration, investigation, implementation, debugging, analysis, and bulk work.
+
+This split is a **cost** argument, not a capability one — opus-5 and Sol are close on raw intelligence, but Codex tokens are free to me and Claude's aren't. So route the work Codex handles well to Codex because it's free, not because Claude couldn't. Where a native Claude subagent is markedly better suited — a broad `Explore` fan-out, a diff you're already holding in context — take it and don't apologise for it.
 
 **Q2 — Tier within the family.** Judge by the cost of the model being under-qualified:
 
 - Trivial, mechanical, high-volume → Luna
 - Ordinary, well-specified → Terra
-- Hard, ambiguous, long-running, high-stakes → Sol / opus-4.8, with fable-5 for the very hardest judgment problems
-
-**Hard rule:** spawning a native Claude subagent (Explore, general-purpose, Plan, claude) is an exception that requires a Q1 "yes" you can state in one sentence. If you can't name the specific taste or judgment need, it goes to Codex. "It's the built-in tool" is never that sentence.
-
-(Reviews stay composite: one Claude reviewer for judgment + one independent GPT-5.6 Sol reviewer for execution, per the review-loop process in Behaviour above.)
+- Hard, ambiguous, long-running, high-stakes → Sol / opus-5, with fable-5 for the very hardest judgment problems
 
 ### Reference: rankings, effort, and mechanics
 
@@ -78,8 +87,8 @@ Rankings, higher = better. Cost reflects what I actually pay not list price. Int
 | gpt-5.6 Sol   | 65/100  | 9            | 6     | 7     | high           |
 | gpt-5.6 Terra | 85/100  | 6.5          | 5     | 9     | high           |
 | gpt-5.6 Luna  | 100/100 | 6            | 4     | 10    | high           |
-| sonnet-5      | 10/100  | 5            | 7     | 6     | medium         |
-| opus-4.8      | 50/100  | 7            | 8     | 4     | high           |
+| sonnet-5      | 10/100  | 5            | 7     | 4     | medium         |
+| opus-5        | 50/100  | 9.4          | 8     | 6     | high           |
 | fable-5       | 20/100  | 10           | 9     | 5     | high           |
 
 How to apply:
@@ -92,17 +101,17 @@ How to apply:
 - GPT-5.6 Sol: use `high` for normal hard work. ignore everything above for this model
 - GPT-5.6 Terra: use `medium` for everyday coding, research, and planning. Raise it to `high` for a bounded difficult task. Prefer Sol over pushing Terra to `xhigh` or `max` for high-stakes or long-running work; Terra is the balanced, lower-cost tier.
 - GPT-5.6 Luna: use `low` for short mechanical work and `medium` when a cheap task needs a little judgment. Do not spend `high`, `xhigh`, or `max` effort trying to make Luna solve a Sol-class problem. OpenAI identifies Luna as the faster, lower-intelligence fallback, even though published evaluations show that it too improves as reasoning increases.
-- 5.6 is VERY literal, it will not try to find the deeper intent of your problem but instead will follow it literally and exactly word for word almost.
-- Sonnet 5: use `medium` by default. Anthropic's cost/performance tests favor medium effort, while higher effort can reach Opus 4.8 performance on some agentic search and computer-use tasks. Use `high` for sustained implementation or messy debugging and `xhigh` when keeping Sonnet is more useful than switching models. For judgment-heavy work, switch to Opus or Fable instead of paying for repeated Sonnet retries.
-- Opus 4.8: use `high` by default, matching Anthropic's recommended balance. Use `xhigh` for difficult tasks and long asynchronous workflows.
+- 5.6 is VERY literal, it will not try to find the deeper intent of your prompt but instead will follow it literally and exactly word for word almost. So be very specific when calling 5.6
+- Sonnet 5: use `medium` by default. Anthropic's cost/performance tests favor medium effort, while higher effort closes some of the gap to the Opus tier on agentic search and computer-use tasks. Use `high` for sustained implementation or messy debugging and `xhigh` when keeping Sonnet is more useful than switching models. For judgment-heavy work, switch to Opus or Fable instead of paying for repeated Sonnet retries.
+- Opus 5: use `high` by default, dont use anything above that.
 - Fable 5: use `medium` by default. Use `high` for ambiguous architecture, research, difficult reviews, and long autonomous work. ignore efforts above high for this model.
 - Don't let cost prevent you from using the right model for the job. Instead, take advantage of cheaper options to get more information and try things before moving the work to a more expensive option.
 - Bulk or mechanical work: use GPT-5.6 Luna for small, independent, high-volume tasks. Use GPT-5.6 Terra for clear-spec implementation, data analysis, and migrations that still need sustained reasoning.
 - Anything user-facing (UI, copy, API design) needs taste >= 7.
-- Reviews of plans and implementations: use fable-5 or opus-4.8 for judgment and taste, plus GPT-5.6 Sol for an independent execution-focused review.
+- Reviews of plans and implementations: use fable-5 or opus-5 for judgment and taste, plus GPT-5.6 Sol for an independent execution-focused review — one axis each, per the `review-loop` skill.
 - Never use Haiku.
 
-Using GPT-5.6 inside workflows and subagents (the model parameter only takes Claude models, so use a wrapper):
+#### Using GPT-5.6 inside workflows and subagents (the model parameter only takes Claude models, so use a wrapper):
 
 - Spawn a thin Claude wrapper agent with `model: 'sonnet', effort: 'low'` whose prompt instructs it to write a self-contained Codex prompt, run `codex exec -m <chosen-gpt-5.6-tier>` via Bash, and return the report (use `schema` on the wrapper to get structured output back).
 - Always label these agents with the actual GPT-5.6 tier, such as `gpt-5.6-sol:review-auth`, `gpt-5.6-terra:migrate-data`, or `gpt-5.6-luna:classify`. The workflow UI shows the wrapper's Claude model, so the label is the only indication of the real worker and tier.

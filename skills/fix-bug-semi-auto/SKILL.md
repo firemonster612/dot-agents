@@ -10,7 +10,7 @@ disable-model-invocation: true
 
 2. **Diagnose.** Run the `diagnosing-bugs` skill: build a tight red feedback loop before any theorising, reproduce, minimise, rank falsifiable hypotheses, find the root cause and the regression-test seam.
 
-3. **Fix.** Dispatch one implementer subagent per the `implement-core` contract (via `codex-implementation` or `claude-implement` as the model rubric directs). Its prompt carries the minimised repro, the root cause, and the regression-test seam from diagnosis. If diagnosis already produced a small obvious fix, applying it directly is fine — say so instead of dispatching.
+3. **Fix.** Implement the fix following `writing-code`, carrying the minimised repro, the root cause, and the regression-test seam from diagnosis. A small obvious fix belongs right here — diagnosis already built the context, so handing it to a delegate throws that away. Dispatch a fresh implementer when the fix is substantial or the model rubric points elsewhere.
 
 4. **Review loop.** Use the `review-loop` skill on `BASE..HEAD`.
 

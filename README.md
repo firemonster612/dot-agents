@@ -47,7 +47,9 @@ Specs and tickets are GitHub issues: tickets are sub-issues with native blocked-
 
 **Chain steps:** [grilling](skills/grilling/SKILL.md) · [grill-with-docs](skills/grill-with-docs/SKILL.md) · [to-spec](skills/to-spec/SKILL.md) · [to-tickets](skills/to-tickets/SKILL.md) · [review-loop](skills/review-loop/SKILL.md) · [finishing-a-development-branch](skills/finishing-a-development-branch/SKILL.md)
 
-**Delegation & review cores:** [implement-core](skills/implement-core/SKILL.md) · [codex-implementation](skills/codex-implementation/SKILL.md) · [claude-implement](skills/claude-implement/SKILL.md) · [review-core](skills/review-core/SKILL.md) · [codex-review](skills/codex-review/SKILL.md) · [claude-review](skills/claude-review/SKILL.md) · [verification-before-completion](skills/verification-before-completion/SKILL.md)
+**Doing the work (worker-facing — load these when you're the one writing, and point delegates at them too):** [writing-code](skills/writing-code/SKILL.md) · [reviewing-code](skills/reviewing-code/SKILL.md) · [verification-before-completion](skills/verification-before-completion/SKILL.md)
+
+**Dispatching:** [cli-subagents](skills/cli-subagents/SKILL.md) — shelling out to Codex or Claude when no native subagent primitive is available
 
 **Vocabulary & lenses:** [codebase-design](skills/codebase-design/SKILL.md) · [domain-modeling](skills/domain-modeling/SKILL.md) · [write-less](skills/write-less/SKILL.md) · [typescript-beautify](skills/typescript-beautify/SKILL.md) · [tdd](skills/tdd/SKILL.md)
 

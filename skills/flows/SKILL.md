@@ -17,12 +17,12 @@ You don't remember every skill, so ask. Describe your situation; this skill answ
 ## The main chain (what the masters run)
 
 ```
-grill-with-docs → to-spec → [one session? → single delegate
+grill-with-docs → to-spec → [one session? → implement it (writing-code)
                              too big?    → to-tickets → frontier of fresh delegates]
                 → review-loop (once, BASE..HEAD) → finishing-a-development-branch
 ```
 
-Keep everything through `to-tickets` in ONE unbroken context window. Each ticket then gets a **fresh** delegate whose context package is the spec + the ticket + the blockers' commits. Review runs once at the end — it's token-heavy.
+Keep everything through `to-tickets` in ONE unbroken context window. Each ticket then gets a **fresh** delegate whose context package is the spec + the ticket + the blockers' commits — that freshness is why multi-ticket work delegates. A change that fits one session doesn't need a delegate at all; implement it directly unless the model rubric points elsewhere. Review runs once at the end — it's token-heavy.
 
 ## On-ramps
 
@@ -39,14 +39,20 @@ Keep everything through `to-tickets` in ONE unbroken context window. Each ticket
 - **`domain-modeling`** — the glossary (`CONTEXT.md`) and ADR discipline.
 - **`write-less`** — anti-over-engineering: load BEFORE implementing, and use as the review lens. (Prefer this over `simplify`.)
 - **`typescript-beautify`** — TS/JS style. Only in TypeScript projects.
-- **`tdd`** — the red-green loop and what makes a good test; `implement-core` holds delegates to its rules.
+- **`tdd`** — the red-green loop and what makes a good test; `writing-code` pulls it in when tests exist.
 
-## Delegation & review (model-invoked)
+## Doing the work (model-invoked)
 
-- **`implement-core`** — the delegate contract; **`codex-implementation`** / **`claude-implement`** carry the CLI mechanics. Route by the model rubric in AGENTS.md.
-- **`review-core`** — the two-axis review process; **`codex-review`** / **`claude-review`** carry the CLI mechanics.
-- **`review-loop`** — the dual-reviewer (Claude + GPT) loop at the end of a change.
+These are worker-facing — load them when *you* are the one writing or reviewing, and point delegates at them too.
+
+- **`writing-code`** — load before implementing anything: what to read first, holding scope, test discipline, what your report owes.
+- **`reviewing-code`** — load when reviewing a diff: the two axes, what makes a finding, the smell baseline.
 - **`verification-before-completion`** — the gate before any "done" claim: run the verification, read the output, map claim → evidence.
+
+## Dispatching (model-invoked)
+
+- **`review-loop`** — the two-axis independent review at the end of a change. The one place delegation is structural, not optional.
+- **`cli-subagents`** — how to spawn a Codex or Claude delegate by shelling out, when no native subagent primitive is available. Transport only. Route models by the rubric in AGENTS.md.
 
 ## Standalones
 

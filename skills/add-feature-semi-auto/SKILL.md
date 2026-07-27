@@ -15,13 +15,13 @@ Tracker mechanics (creating issues, claiming, closing) come from `docs/agents/is
 2. **Spec.** Record the base SHA (`git rev-parse HEAD`). Use the `to-spec` skill to turn the feature idea and the user's interview answers into a published spec. Note its size verdict.
 
 3. **Size branch.**
-   - **Fits one session** → dispatch ONE implementer subagent per the `implement-core` contract, via `codex-implementation` or `claude-implement` as the model rubric directs. Then go to step 5.
+   - **Fits one session** → implement it in one pass, following `writing-code`. Delegate that pass to a fresh implementer when the model rubric points at another model or you want to keep this context clear; do it here otherwise. Then go to step 5.
    - **Too big for one session** (to-spec's verdict, or plainly so) → run the `to-tickets` skill, then step 4.
 
 4. **Frontier loop.** Repeat until no open tickets remain:
    - Pick the first **frontier** ticket: open, all blockers closed, unclaimed.
    - **Claim it** (self-assign on GitHub; `Status:` line locally) before any work.
-   - Dispatch a **fresh** implementer subagent per `implement-core`. Its context package: the master spec, the ticket, and what's already implemented (the progress ledger plus the blockers' commits). Never reuse an earlier ticket's delegate — each ticket gets a clean context.
+   - Dispatch a **fresh** implementer subagent, pointed at `writing-code`. Its context package: the master spec, the ticket, and what's already implemented (the progress ledger plus the blockers' commits). Never reuse an earlier ticket's delegate — each ticket gets a clean context. This is the one part of the chain where delegating is structural rather than optional: the fresh context per ticket is the point.
    - After verifying the delegate's diff yourself: commit the ticket's work referencing its issue (`Closes #N`), post the verification evidence as a comment on the ticket, close it, and append a ledger line: `Ticket #N: complete (<base>..<head>)`.
 
 5. **Review loop.** Once ALL implementation is done, use the `review-loop` skill on the full `BASE..HEAD` — one review pass for the whole feature, not per ticket (review is token-heavy).
