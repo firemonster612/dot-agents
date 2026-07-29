@@ -88,7 +88,7 @@ Rankings, higher = better. Cost reflects what I actually pay not list price. Int
 | gpt-5.6 Terra | 85/100  | 6.5          | 5     | 9     | high           |
 | gpt-5.6 Luna  | 100/100 | 6            | 4     | 10    | high           |
 | sonnet-5      | 10/100  | 5            | 7     | 4     | medium         |
-| opus-5        | 50/100  | 9.4          | 8     | 6     | high           |
+| opus-5        | 50/100  | 9            | 8     | 6     | high           |
 | fable-5       | 20/100  | 10           | 9     | 5     | high           |
 
 How to apply:
@@ -102,16 +102,21 @@ How to apply:
 - GPT-5.6 Terra: use `medium` for everyday coding, research, and planning. Raise it to `high` for a bounded difficult task. Prefer Sol over pushing Terra to `xhigh` or `max` for high-stakes or long-running work; Terra is the balanced, lower-cost tier.
 - GPT-5.6 Luna: use `low` for short mechanical work and `medium` when a cheap task needs a little judgment. Do not spend `high`, `xhigh`, or `max` effort trying to make Luna solve a Sol-class problem. OpenAI identifies Luna as the faster, lower-intelligence fallback, even though published evaluations show that it too improves as reasoning increases.
 - 5.6 is VERY literal, it will not try to find the deeper intent of your prompt but instead will follow it literally and exactly word for word almost. So be very specific when calling 5.6
+
 - Sonnet 5: use `medium` by default. Anthropic's cost/performance tests favor medium effort, while higher effort closes some of the gap to the Opus tier on agentic search and computer-use tasks. Use `high` for sustained implementation or messy debugging and `xhigh` when keeping Sonnet is more useful than switching models. For judgment-heavy work, switch to Opus or Fable instead of paying for repeated Sonnet retries.
+
 - Opus 5: use `high` by default, dont use anything above that.
+- Opus 5 is more through than fable but has some strange behaviours like doing way too much work, writing way too many tests, trying to verify too much, and will try to approach every problem like it was the hardest problem, and will try to bruteforce the hell out of everything.
+
 - Fable 5: use `medium` by default. Use `high` for ambiguous architecture, research, difficult reviews, and long autonomous work. ignore efforts above high for this model.
+
 - Don't let cost prevent you from using the right model for the job. Instead, take advantage of cheaper options to get more information and try things before moving the work to a more expensive option.
 - Bulk or mechanical work: use GPT-5.6 Luna for small, independent, high-volume tasks. Use GPT-5.6 Terra for clear-spec implementation, data analysis, and migrations that still need sustained reasoning.
 - Anything user-facing (UI, copy, API design) needs taste >= 7.
 - Reviews of plans and implementations: use fable-5 or opus-5 for judgment and taste, plus GPT-5.6 Sol for an independent execution-focused review — one axis each, per the `review-loop` skill.
 - Never use Haiku.
 
-#### Using GPT-5.6 inside workflows and subagents (the model parameter only takes Claude models, so use a wrapper):
+#### Using GPT-5.6 inside workflows and subagents (ONLY WHEN: the model parameter only takes Claude models, so use a wrapper):
 
 - Spawn a thin Claude wrapper agent with `model: 'sonnet', effort: 'low'` whose prompt instructs it to write a self-contained Codex prompt, run `codex exec -m <chosen-gpt-5.6-tier>` via Bash, and return the report (use `schema` on the wrapper to get structured output back).
 - Always label these agents with the actual GPT-5.6 tier, such as `gpt-5.6-sol:review-auth`, `gpt-5.6-terra:migrate-data`, or `gpt-5.6-luna:classify`. The workflow UI shows the wrapper's Claude model, so the label is the only indication of the real worker and tier.
