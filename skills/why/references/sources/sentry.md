@@ -1,4 +1,4 @@
-# Sentry Error History
+# Sentry error history
 
 ## What this source contains
 
@@ -9,7 +9,7 @@ Sentry is the archive of things that went wrong. For defensive, corrective, or e
 - **Releases.** Deployment records with associated issues (useful for "which version fixed this?")
 - **Replays.** Session recordings of user-facing errors (if enabled)
 - **Profiles.** Performance profiling data (less useful for "why"; more for "how slow")
-- **Issue comments & assignments.** Sometimes contain engineer notes on root cause
+- **Issue comments and assignments.** Sometimes contain engineer notes on root cause
 
 The most valuable thing Sentry provides is **temporal correlation**: "issue X was created 2024-01-02, peaked at 500 events/day, stopped appearing after release v2.14.0 on 2024-01-15, the release that shipped the defensive check."
 

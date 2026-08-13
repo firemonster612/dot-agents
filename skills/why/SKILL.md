@@ -13,7 +13,7 @@ Companion to the `how` skill. `how` answers what the code does and how it works.
 
 Historical context spreads across seven evidence categories: source control history, issue or ticket tracking, long-form documents, real-time team chat, infrastructure observability, error or exception tracking, and product analytics warehouses. You cannot predict from the question alone which one holds the answer, so the skill enumerates available MCPs at run time, maps each to a category, queries all seven in parallel, then synthesizes with explicit confidence calibration. Null results from searched categories are first-class evidence about how the decision was made; report them alongside positive findings. The default is coverage, not minimalism.
 
-## Operating Posture
+## Operating posture
 
 Operate as a careful, cautious, precise investigator. Think like a detective piecing together a historical case from fragmentary records. When the record is thin, say so.
 
@@ -28,7 +28,7 @@ Concretely:
 
 This posture is the working method, not a disclaimer.
 
-## Core Epistemics
+## Core epistemics
 
 This skill builds a **patchwork understanding** from fragmented historical evidence. Tickets go stale. Chat threads get deleted. Commit messages lie. People change their minds between the PR description and the implementation. The original author may have left the company.
 
@@ -45,7 +45,7 @@ Principles:
 
 Read `references/epistemics.md` for the full confidence framework and phrasing guide. The synthesizer must follow it.
 
-## Step 1. Understand the Target and the Question
+## Step 1. Understand the target and the question
 
 Parse what the user is asking. The **target** is usually a chunk of code, a pattern, a feature, or a named design decision. The **question** is usually one of:
 
@@ -58,7 +58,7 @@ Parse what the user is asking. The **target** is usually a chunk of code, a patt
 
 If the target is vague ("why do we do it this way?" with no clear referent), make your best guess from conversation context (open files, recent edits, cursor location, what was just discussed). State your interpretation briefly so the user can redirect if you're off, then proceed.
 
-## Step 2. Establish the Code Anchor
+## Step 2. Establish the code anchor
 
 Before spawning investigators, anchor the investigation in concrete code. You need:
 
@@ -91,7 +91,7 @@ gh pr view <number> --json title,body,author,createdAt,mergedAt,labels,closingIs
 
 Capture this as seed context (file paths, symbols, commits, PR numbers, linked ticket IDs). Pass it to the investigators so they don't rediscover it.
 
-## Step 3. Spawn Parallel Investigators (default posture)
+## Step 3. Spawn parallel investigators (default posture)
 
 **Default to the full parallel investigation.** Each evidence category lives in a different kind of system, and you cannot tell from the question alone which one holds the answer without looking. So look across every available category, in parallel, by default.
 
@@ -179,7 +179,7 @@ Its job is the final output: a confidence-weighted, evidence-cited narrative wit
 
 Take the synthesizer's output and present it to the user. You may lightly edit for clarity or add context from the conversation, but **do not rewrite the confidence language**. The epistemic framing is the product. Dropping the hedges to sound more authoritative is the exact failure mode this skill exists to prevent.
 
-## Output Format
+## Output format
 
 The final output uses this structure. Adapt as needed, but keep the confidence separation intact.
 
@@ -210,7 +210,7 @@ Example:
 
 After the Sources Consulted block, if the user's `why` question is a precursor to actually changing this code, convert the lineage findings into a Preserve / Change / Avoid / Risk constraint set suitable for planning the change.
 
-## Common Failure Modes to Avoid
+## Common failure modes to avoid
 
 - **Confident storytelling**. A plausible narrative built from thin evidence. A bullet with no citation goes in "inferred" or "hypotheses," not "what we found."
 - **Citing the code as evidence for its own intent**. "Handles the null case because it checks for null" is mechanics, not motivation. Motivation comes from an external source (PR discussion, ticket, comment, conversation) or is labeled as inference.
@@ -220,7 +220,7 @@ After the Sources Consulted block, if the user's `why` question is a precursor t
 - **Skipping investigators by anticipation**. Deciding up front that "long-form docs probably don't have this" or "this isn't an error tracking thing" without searching. The default-to-all-seven posture prevents this. A null result is a data point; a skipped search is a blind spot.
 - **Collapsing investigators into one agent**. Each MCP has its own query vocabulary, result shape, and pitfalls; pooling them dilutes specialization and makes coverage harder to reason about. Always one investigator per category.
 
-## Reference Files
+## Reference files
 
 - `references/epistemics.md`. Confidence tiers and phrasing guide. The synthesizer must follow it.
 - `references/investigator-prompt.md`. Base prompt template for investigator subagents.

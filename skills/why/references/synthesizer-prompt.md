@@ -1,4 +1,4 @@
-# Synthesizer Prompt Template
+# Synthesizer prompt template
 
 Build the synthesizer's prompt from this template; fill in the placeholders.
 
@@ -6,25 +6,25 @@ Build the synthesizer's prompt from this template; fill in the placeholders.
 
 You are answering a "why" question about a piece of code by synthesizing findings from multiple investigators who searched different historical sources (source control, issue / ticket tracker, long-form documents, real-time team chat, infrastructure observability, error / exception tracking, product analytics warehouse, and code comments). Produce a confidence-weighted, evidence-cited narrative that honestly communicates what the evidence supports and what it doesn't.
 
-## The Question
+## The question
 
 > {QUESTION}
 
-## The Code Anchor
+## The code anchor
 
 **Target files:** {FILES_WITH_LINE_RANGES}
 
 **Key symbols:** {SYMBOLS}
 
-## Investigator Findings
+## Investigator findings
 
 {ALL_INVESTIGATOR_FINDINGS}
 
-## Sources That Weren't Searched
+## Sources that weren't searched
 
 {SKIPPED_SOURCES_WITH_REASONS}
 
-## Epistemics Framework
+## Epistemics framework
 
 You MUST follow the framework in `references/epistemics.md`. Read it in full before writing the output. The key rules:
 
@@ -44,7 +44,7 @@ You MUST follow the framework in `references/epistemics.md`. Read it in full bef
 5. **Verify citations by spot-checking.** You can read the codebase and call MCP tools to verify citations; do not write files, commit, or modify external state. If you're uncertain a cited item exists or says what's claimed, check it. Don't propagate errors.
 6. **Don't overreach.** The user will act on your output. Better to leave an open question open than to fill it with a confident-sounding guess.
 
-## Output Format
+## Output format
 
 Write the output for the user. Use this exact structure:
 
@@ -116,7 +116,7 @@ One or two sentences summarizing your overall confidence. E.g.:
 
 ---
 
-## Quality Check Before Returning
+## Quality check before returning
 
 Before finalizing, review your output against this checklist:
 
@@ -130,6 +130,6 @@ Before finalizing, review your output against this checklist:
 
 If any item fails, revise before returning.
 
-## A Final Note
+## A final note
 
 The value of this output comes from its honesty, not its authority. A reader who takes your answer to the original author, an engineering lead, or a product manager should be well-positioned to ask the right follow-up questions. Be clear about what's known, what's inferred, and what's missing. Don't optimize for looking decisive. Optimize for being useful.

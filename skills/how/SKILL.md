@@ -40,7 +40,7 @@ Decompose the question into 2-4 parallel exploration angles, each a distinct sli
 - Explorer 2: request path and enforcement
 - Explorer 3: configuration and metrics infrastructure
 
-The right decomposition depends on the question. Use your judgment. Narrow questions: 2 explorers is fine. Broad subsystems: up to 4.
+The right decomposition depends on the question. Use your judgment. For narrow questions, 2 explorers is fine. For broad subsystems, up to 4.
 
 Spawn all explorers in a single message:
 
@@ -50,7 +50,7 @@ Spawn all explorers in a single message:
 
 Each explorer gets the same base prompt from `references/explorer-prompt.md` plus a specific exploration angle naming its slice. Each explorer should:
 - Start broad: Glob for relevant directories, Grep for key types/interfaces/class names
-- Follow the thread: from an entry point, trace the call chain (callers, callees, data flow, type definitions)
+- Follow the thread from an entry point, tracing the call chain (callers, callees, data flow, type definitions)
 - Read the actual code, don't guess from file names
 - Stop when it can describe the full path from input to output (or trigger to effect) without hand-waving any step
 - Note things that are surprising, non-obvious, or that a newcomer would get wrong
@@ -101,7 +101,7 @@ Follow this structure, adapted to the question. Not every section is needed for 
 
 ## Critique Mode
 
-Triggered when the user asks for architectural issues, problems, or improvements, not just understanding.
+Triggered when the user asks for architectural issues, problems, or improvements, rather than understanding alone.
 
 ### Step 1. Explain First
 

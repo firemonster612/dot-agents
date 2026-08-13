@@ -1,13 +1,13 @@
-# Datadog Telemetry
+# Datadog telemetry
 
 ## What this source contains
 
-Datadog holds the runtime record: what actually happened in production, as opposed to what was planned or discussed.
+Datadog holds the runtime record of what actually happened in production, as opposed to what was planned or discussed.
 
-- **Metrics.** Counters, gauges, histograms instrumented by the team. A metric's *presence* is itself evidence: someone thought this number worth watching.
-- **Monitors & alerts.** Conditions the team decided warranted waking someone up. A monitor firing on `rate_limit_hit > 10/min` is direct evidence the team worried about that threshold.
+- **Metrics.** Counters, gauges, histograms instrumented by the team. A metric's *presence* is itself evidence that someone thought this number worth watching.
+- **Monitors and alerts.** Conditions the team decided warranted waking someone up. A monitor firing on `rate_limit_hit > 10/min` is direct evidence the team worried about that threshold.
 - **Dashboards.** Curated views. The charts tell you what the team considers important for a subsystem.
-- **APM traces & spans.** Request-level runtime data. Useful for "why is this slow" / "why is there a timeout here" questions.
+- **APM traces and spans.** Request-level runtime data. Useful for "why is this slow" / "why is there a timeout here" questions.
 - **Logs.** High-volume event records. Often contain the error conditions that motivated defensive code.
 - **Incidents.** Formal incident records with timelines and linked postmortems.
 - **Notebooks.** Exploratory investigations; often contain hypotheses and analyses.

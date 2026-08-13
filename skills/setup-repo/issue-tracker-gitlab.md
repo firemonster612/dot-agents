@@ -10,9 +10,9 @@ Issues and specs for this repo live as GitLab issues. Use the [`glab`](https://g
 - **Comment on an issue**: `glab issue note <number> --message "..."`. GitLab calls comments "notes".
 - **Apply / remove labels**: `glab issue update <number> --label "..."` / `--unlabel "..."`. Multiple labels can be comma-separated or by repeating the flag.
 - **Close**: `glab issue close <number>`. `glab issue close` does not accept a closing comment, so post the explanation first with `glab issue note <number> --message "..."`, then close.
-- **Merge requests**: GitLab calls PRs "merge requests". Use `glab mr create`, `glab mr view`, `glab mr note`, etc. — the same shape as `gh pr ...` with `mr` in place of `pr` and `note`/`--message` in place of `comment`/`--body`.
+- **Merge requests**: GitLab calls PRs "merge requests". Use `glab mr create`, `glab mr view`, `glab mr note`, etc. These have the same shape as `gh pr ...` with `mr` in place of `pr` and `note`/`--message` in place of `comment`/`--body`.
 
-Infer the repo from `git remote -v` — `glab` does this automatically when run inside a clone.
+Infer the repo from `git remote -v`. `glab` does this automatically when run inside a clone.
 
 ## Merge requests as a triage surface
 
@@ -38,6 +38,6 @@ Run `glab issue view <number> --comments`.
 
 Used by `to-tickets` when publishing, and by whoever dispatches a multi-ticket run (see AGENTS.md's delegation hygiene) to find and claim the next unblocked ticket.
 
-- **Blocking**: GitLab's **native blocking link** — the canonical, UI-visible representation. Add it with the `/blocked_by #<n>` quick action, posted as a note (`glab issue note <child> --message "/blocked_by #<blocker>"`). Native blocking links are a Premium/Ultimate feature; on the free tier (or where unavailable) fall back to a `Blocked by: #<n>, #<n>` line at the top of the description. A ticket is unblocked when every blocker is closed.
-- **Frontier query**: `glab issue list -F json` scoped to the feature's tickets, drop any with an open blocker — a native `blocked_by` link to an open issue (`glab api projects/:id/issues/:iid/links`), or an open issue in the `Blocked by` line — or an assignee; first in order wins.
-- **Claim**: `glab issue update <n> --assignee @me` — the session's first write.
+- **Blocking**: GitLab's **native blocking link**, the canonical, UI-visible representation. Add it with the `/blocked_by #<n>` quick action, posted as a note (`glab issue note <child> --message "/blocked_by #<blocker>"`). Native blocking links are a Premium/Ultimate feature; on the free tier (or where unavailable) fall back to a `Blocked by: #<n>, #<n>` line at the top of the description. A ticket is unblocked when every blocker is closed.
+- **Frontier query**: `glab issue list -F json` scoped to the feature's tickets, drop any with an assignee, and any with an open blocker (a native `blocked_by` link to an open issue, read with `glab api projects/:id/issues/:iid/links`, or an open issue in the `Blocked by` line); first in order wins.
+- **Claim**: `glab issue update <n> --assignee @me`, the session's first write.

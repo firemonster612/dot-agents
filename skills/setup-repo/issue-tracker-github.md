@@ -11,7 +11,7 @@ Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all o
 - **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`
 - **Close**: `gh issue close <number> --comment "..."`
 
-Infer the repo from `git remote -v` — `gh` does this automatically when run inside a clone.
+Infer the repo from `git remote -v`. `gh` does this automatically when run inside a clone.
 
 ## Pull requests as a triage surface
 
@@ -23,7 +23,7 @@ When set to `yes`, PRs run through the same labels and states as issues, using t
 - **List external PRs for triage**: `gh pr list --state open --json number,title,body,labels,author,authorAssociation,comments` then keep only `authorAssociation` of `CONTRIBUTOR`, `FIRST_TIME_CONTRIBUTOR`, or `NONE` (drop `OWNER`/`MEMBER`/`COLLABORATOR`).
 - **Comment / label / close**: `gh pr comment`, `gh pr edit --add-label`/`--remove-label`, `gh pr close`.
 
-GitHub shares one number space across issues and PRs, so a bare `#42` may be either — resolve with `gh pr view 42` and fall back to `gh issue view 42`.
+GitHub shares one number space across issues and PRs, so a bare `#42` may be either. Resolve with `gh pr view 42` and fall back to `gh issue view 42`.
 
 ## When a skill says "publish to the issue tracker"
 
@@ -37,6 +37,6 @@ Run `gh issue view <number> --comments`.
 
 Used by `to-tickets` when publishing, and by whoever dispatches a multi-ticket run (see AGENTS.md's delegation hygiene) to find and claim the next unblocked ticket.
 
-- **Blocking**: GitHub's **native issue dependencies** — the canonical, UI-visible representation. Add an edge with `gh api --method POST repos/<owner>/<repo>/issues/<child>/dependencies/blocked_by -F issue_id=<blocker-db-id>`, where `<blocker-db-id>` is the blocker's numeric **database id** (`gh api repos/<owner>/<repo>/issues/<n> --jq .id`, _not_ the `#number` or `node_id`). Read blockers back with `gh issue view <n> --json blockedBy`; a ticket is blocked while `blockedBy` contains an open issue. Where dependencies aren't available, fall back to a `Blocked by: #<n>, #<n>` line at the top of the child body. A ticket is unblocked when every blocker is closed.
+- **Blocking**: GitHub's **native issue dependencies**, the canonical, UI-visible representation. Add an edge with `gh api --method POST repos/<owner>/<repo>/issues/<child>/dependencies/blocked_by -F issue_id=<blocker-db-id>`, where `<blocker-db-id>` is the blocker's numeric **database id** (`gh api repos/<owner>/<repo>/issues/<n> --jq .id`, _not_ the `#number` or `node_id`). Read blockers back with `gh issue view <n> --json blockedBy`; a ticket is blocked while `blockedBy` contains an open issue. Where dependencies aren't available, fall back to a `Blocked by: #<n>, #<n>` line at the top of the child body. A ticket is unblocked when every blocker is closed.
 - **Frontier query**: `gh issue list --state open --json number,title,blockedBy,assignees`, scoped to the feature's tickets (`gh issue view <parent> --json subIssues` where sub-issues are used); drop any with an open issue in `blockedBy` or with an assignee; first in order wins.
-- **Claim**: `gh issue edit <n> --add-assignee @me` — the session's first write.
+- **Claim**: `gh issue edit <n> --add-assignee @me`, the session's first write.
