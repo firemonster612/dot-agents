@@ -1,6 +1,6 @@
 ---
 name: reviewing-code
-description: How to review a change well: the two axes, what makes a finding, the smell baseline, and the output shape. Load when you are reviewing a diff, whether on your own or because you were dispatched as a reviewer on one axis.
+description: "How to review a change well: the two axes, what makes a finding, the smell baseline, and the output shape. Load when you are reviewing a diff, whether on your own or because you were dispatched as a reviewer."
 ---
 
 # Reviewing Code
@@ -9,9 +9,9 @@ You are reviewing a change against a fixed target. Findings are the deliverable.
 
 Keep the review **read-only**: no edits, no fixes, no commits. Work directly; do not delegate to other agents, subagents, or Codex.
 
-## Your axis
+## The two axes
 
-A review runs on two axes, and you own one of them. If your dispatch didn't say which, ask or state which one you're taking.
+A review runs on two axes, and you cover both unless your dispatch narrows you to one. Tag every finding with its axis.
 
 **Standards.** Is the code correct and does it meet the project's own rules? Look for:
 

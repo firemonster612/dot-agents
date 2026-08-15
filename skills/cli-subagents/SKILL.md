@@ -26,7 +26,7 @@ Parallel implementers in one checkout will collide. Give each its own worktree, 
 ARTIFACT_DIR="$(mktemp -d "${TMPDIR:-/tmp}/codex-delegate.XXXXXX")"
 
 # Implementation — writes to the repo:
-codex exec -m <tier> -C "$REPO" --add-dir "$ARTIFACT_DIR" \
+codex exec -m <model> -C "$REPO" --add-dir "$ARTIFACT_DIR" \
   -s workspace-write -o "$ARTIFACT_DIR/report.md" \
   - < "$ARTIFACT_DIR/prompt.md"
 
@@ -36,10 +36,9 @@ codex -C "$REPO" review --base main - \
 #            --uncommitted | --commit <sha>
 ```
 
-- `-m` picks the tier: Luna for mechanical work, Terra for ordinary implementation, Sol for hard or long-running work.
+- `-m` picks the model.
 - `-s workspace-write` by default. `-s danger-full-access` only when the work genuinely needs outside-the-repo access: app launch automation, simulators, global package state.
 - Run inside a git repo or pass `-C <repo>`; `--skip-git-repo-check` only for deliberate non-repo work.
-- Codex runs don't cost tokens you pay for, so prefer Codex for exploratory or bulk delegation.
 
 ## Claude
 
@@ -50,15 +49,15 @@ ARTIFACT_DIR="$(mktemp -d "${TMPDIR:-/tmp}/claude-delegate.XXXXXX")"
 
 # Implementation:
 cd "$REPO" && claude -p \
-  --model sonnet --effort medium \
+  --model <model> --effort <effort> \
   --output-format json --permission-mode acceptEdits \
   --allowedTools "Bash(git diff *),Bash(git status *),Bash(pnpm *),Bash(bun *)" \
-  --strict-mcp-config --max-budget-usd 10 \
+  --strict-mcp-config \
   < "$ARTIFACT_DIR/prompt.md" > "$ARTIFACT_DIR/result.json" 2> "$ARTIFACT_DIR/stderr.log"
 
 # Review — read-only, so deny the edit tools outright:
 cd "$REPO" && claude -p \
-  --model opus --effort high \
+  --model <model> --effort <effort> \
   --output-format json --no-session-persistence --permission-mode dontAsk \
   --disallowedTools "Edit,Write,NotebookEdit" \
   --allowedTools "Bash(git diff *),Bash(git log *),Bash(git show *),Bash(git status *),Bash(git rev-parse *)" \
@@ -66,12 +65,10 @@ cd "$REPO" && claude -p \
   < "$ARTIFACT_DIR/prompt.md" > "$ARTIFACT_DIR/result.json" 2> "$ARTIFACT_DIR/stderr.log"
 
 jq -r '.result' "$ARTIFACT_DIR/result.json" > "$ARTIFACT_DIR/report.md"
-jq '{is_error, num_turns, total_cost_usd, session_id, permission_denials}' "$ARTIFACT_DIR/result.json"
+jq '{is_error, num_turns, session_id, permission_denials}' "$ARTIFACT_DIR/result.json"
 ```
 
 - **Permissions:** `acceptEdits` auto-approves reads, edits, and safe filesystem commands, but Bash still needs `--allowedTools` entries. Tailor the `Bash(...)` prefixes to the task's actual test/build/lint commands. Entries in `.permission_denials` mean the allowlist was too narrow. Widen it and resume the session rather than restarting. Use `--dangerously-skip-permissions` only for work that truly needs broad machine access, in repos you trust; it's refused as root.
-- **Model:** `sonnet --effort medium` for ordinary bounded implementation, `sonnet --effort high` for sustained or messy work, `opus --effort high` for reviews and judgment-heavy work, `fable --effort high` for the hardest ambiguous calls. Never Haiku.
-- **Cost:** Claude tokens cost real money where Codex doesn't. Keep `--max-budget-usd` as a runaway guard and report `total_cost_usd` when it matters.
 - **Iterating:** capture `.session_id` and continue with `claude -p --resume <id> "fix the failing test" ...`, re-passing the model and permission flags, which are per-invocation, not per-session.
 - `--add-dir <path>` grants access to one directory outside the repo without widening anything else.
 

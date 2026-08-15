@@ -1,6 +1,6 @@
 ---
 name: review-loop
-description: At the end of a change, review it with independent reviewers in a loop. Pin the target, dispatch one reviewer per axis, triage findings, dispatch one fixer, repeat. Only invoke if a skill asks or the user asks.
+description: Review changes in a loop with multiple model families.
 ---
 
 # Review Loop
@@ -9,7 +9,11 @@ Review is the one place where delegating is the point rather than a convenience.
 
 Treat their output as **evidence, not orders**.
 
-> If you have dynamic workflows (i.e. you're running in Claude Code), script this loop as a workflow. Otherwise run it by hand.
+This skill is dispatcher-facing. It defines the loop: pin the target, dispatch reviewers, compile and triage their reports, dispatch one fixer, repeat. How a reviewer conducts the review is `reviewing-code`'s job, and how the fixer works is `writing-code`'s. Hand those skills as paths; don't restate their content in dispatch prompts.
+
+**The loop is exactly one level deep.** You dispatch; reviewers and the fixer are leaves. Every dispatch prompt carries the direct-work line: `Work directly; do not delegate to other agents.` Never invoke review-loop from inside a dispatched agent. A delegate that starts its own review loop recurses without bound.
+
+> If you have dynamic workflows (i.e. you're running in Claude Code or Pi), script this loop as a workflow. Otherwise run it by hand.
 
 ## 1. Pin the target
 
@@ -28,21 +32,21 @@ Fail early if the ref is invalid or the diff is empty. Don't make reviewers redi
 
 **Standards:** every instruction that applies to the changed files, including scoped `AGENTS.md`/`CLAUDE.md`, `CONTRIBUTING.md`, coding standards, architecture docs, and test conventions, plus `CONTEXT.md` and the ADRs under `docs/adr/` touching the area.
 
-## 3. Dispatch one reviewer per axis
+## 3. Dispatch two reviewers
 
-**Two reviewers, not four. The axis is the unit of dispatch, and the model family is a knob on each.** Put the two axes on different model families when both are available, because that's where the independence comes from. Double up an axis only for an unusually high-stakes change.
+**Two reviewers, each covering both axes, on different model families.** Both get the same target and the same inputs; the independence comes from the family split, not from dividing the work. Add a third reviewer only for an unusually high-stakes change.
 
-Each reviewer gets: the `reviewing-code` skill, which axis it owns, the pinned target command and commit list, and that axis's inputs from step 2. Neither sees the other's report. Keep both read-only.
+Each reviewer gets: the `reviewing-code` skill as a path, the pinned target command and commit list, the inputs from step 2, and the direct-work line. Nothing else — the axes, finding shape, and smell baseline are `reviewing-code`'s to apply. Neither reviewer sees the other's report. Keep both read-only.
 
-Route models per the rubric in `AGENTS.md`, judgment and taste on one axis, execution focus on the other. Where you have no native subagents, `cli-subagents` carries the command shapes.
+Route models per the rubric in `AGENTS.md`: one family strong on judgment and taste, the other on execution focus. Where you have no native subagents, `cli-subagents` carries the command shapes.
 
-## 4. Triage before fixing anything
+## 4. Compile and triage before fixing anything
 
-Open every cited hunk yourself. Drop findings that don't survive contact with the code, and separate the ones you confirmed from the ones you couldn't verify. This step is not optional. Relaying an unverified finding to a fixer spends a whole implementation cycle on nothing.
+Compile both reports into one findings list, merging duplicates — both reviewers cover both axes, so overlap is expected, and a finding both raised is corroboration. Then open every cited hunk yourself. Drop findings that don't survive contact with the code, and separate the ones you confirmed from the ones you couldn't verify. This step is not optional. Relaying an unverified finding to a fixer spends a whole implementation cycle on nothing.
 
 ## 5. Dispatch ONE fixer
 
-One implementer with the full verified findings list, not one fixer per finding. Per-finding fixers each rebuild context and re-run the suite. It follows `writing-code`.
+One implementer with the full consolidated, verified findings list, not one fixer per finding. Per-finding fixers each rebuild context and re-run the suite. It gets `writing-code` as a path and the direct-work line, same as the reviewers.
 
 ## 6. Repeat
 

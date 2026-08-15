@@ -1,6 +1,6 @@
 ---
 name: computer-use-linux
-description: "Observe or control the local Linux desktop GUI via the computer-use-linux MCP server: inspect windows and accessibility trees, take screenshots, click, scroll, type, press keys. Use when a task needs real desktop interaction with a Linux GUI app."
+description: "Use when you need to do computer use tasks on linux, for browser only tasks, use playwriter"
 author: agent-sh
 license: MIT
 platforms: [linux]
@@ -8,7 +8,7 @@ platforms: [linux]
 
 # computer-use-linux
 
-One integration point: the **MCP server** `computer-use-linux` (registered in Claude Code and Codex, launched as `computer-use-linux mcp`). It exposes all observation *and* input tools: `doctor`, `get_app_state`, `list_apps`, `list_windows`, `focused_window`, `screenshot`, `click`, `drag`, `scroll`, `type_text`, `press_key`, `perform_action`, `set_value`, `activate_window`, `move_window`, `resize_window`, `setup_accessibility`, `setup_window_targeting`.
+One integration point: the **MCP server** `computer-use-linux` (registered in Claude Code and Codex, launched as `computer-use-linux mcp`). It exposes all observation _and_ input tools: `doctor`, `get_app_state`, `list_apps`, `list_windows`, `focused_window`, `screenshot`, `click`, `drag`, `scroll`, `type_text`, `press_key`, `perform_action`, `set_value`, `activate_window`, `move_window`, `resize_window`, `setup_accessibility`, `setup_window_targeting`.
 
 Desktop machines only (fedora, cachy). Headless machines (happy, chubbs) have no desktop to control.
 
