@@ -37,6 +37,7 @@ Understanding the codebase: `how` for mechanism, `why` for rationale. Continuity
 - [grilling](skills/grilling/SKILL.md): grill the user relentlessly to stress-test a plan or idea
 - [/grill-with-docs](skills/grill-with-docs/SKILL.md): the same interview, writing ADRs and a glossary as it goes
 - [prototype](skills/prototype/SKILL.md): throwaway prototype to answer a design or UI question
+- [/wayfinder](skills/wayfinder/SKILL.md): chart work too big for one session as a map of decision tickets in local Markdown, resolved one per session
 - [/to-tickets](skills/to-tickets/SKILL.md): break a plan or conversation into tracer-bullet tickets with blocking edges
 - [/setup-repo](skills/setup-repo/SKILL.md): once-per-repo setup for the issue tracker, triage labels, and domain-doc layout
 
