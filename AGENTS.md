@@ -34,6 +34,7 @@ When uncertain, prefer: Tailwind, TypeScript, Bun, React, Convex, Clerk, Vercel.
 - Do the work yourself or delegate it, whichever actually serves the task. You decide, per task. When I want subagents I'll ask for them.
 - always prefer your built-in subagent tools rather than calling subagents via the shell.
 - Whenever you are going to spin off another model, subagent, or workflow to do anything, always consult the model-selection rubric below on which model to choose. Do not default to your own native model family just because it is convenient.
+- always apply the `unslop` skill at the beginning of every chat
 
 ## When delegating pays
 
