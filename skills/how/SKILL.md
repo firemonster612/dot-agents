@@ -109,11 +109,12 @@ Run the full explain flow above (Steps 1-4). You must understand the architectur
 
 ### Step 2. Spawn Critics
 
-After the explanation is complete, spawn one architectural critic per model in your configured how-critics list (defaults `claude-fable-5-thinking-max`, `gpt-5.6-sol-max`, `grok-4.5-fast-xhigh`, `claude-opus-5-thinking-xhigh`), all in a single message.
+After the explanation is complete, spawn one architectural critic per model in your configured how-critics list (defaults `claude-fable-5-thinking-max`, GPT, `grok-4.5-fast-xhigh`, `claude-opus-5-thinking-xhigh`), all in a single message.
+Resolve GPT to a concrete supported model and effort using the routing rubric in `AGENTS.md` before dispatch.
 
 For each critic:
 - `subagent_type`: `generalPurpose`
-- `model`: one model from the configured how-critics list. These are minimum reasoning levels. The lead should escalate any model when the architecture warrants deeper analysis.
+- `model`: the configured model's concrete supported value. For the GPT family slot, use the model resolved before dispatch, never `GPT` itself. The configured entries carry the explicit effort levels for the other critics; choose GPT effort through the `AGENTS.md` routing rubric. These are minimum reasoning levels. The lead should escalate any model when the architecture warrants deeper analysis.
 - `readonly`: `true`
 
 Read `references/critic-prompt.md` for the prompt template. Each critic gets:
