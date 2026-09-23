@@ -22,6 +22,7 @@ When uncertain, prefer: Tailwind, TypeScript, Bun, React, Convex, Clerk, Vercel.
 ## Code Style
 
 - Always strive for concise, simple solutions.
+- Correctness and cleanliness are separate requirements. Prefer clear names, simple control flow, well-placed shared definitions, and code that fits the existing system. Passing tests alone does not make code maintainable.
 - If a problem can be solved in a simpler way, propose it.
 
 ## General preferences
@@ -63,48 +64,83 @@ When you do delegate:
 
 ## Picking the right models for workflows and subagents
 
+Choose the model for the task before dispatch. These defaults apply when the user has not chosen a model. Use native subagents when they support the selected model. Use the CLI only for a model native tools cannot reach. Pass a real supported model ID and an explicit effort level; never dispatch the family name `GPT` or invent a combined model-and-effort ID.
+
 ### Routing
 
-The orchestrator chooses the model for each task. Use **Fable 5 or GPT-6 Astra for most code writing**, including substantial implementation. Choose by the work and the behavior notes below, not by your own model family. Fable 5.1 is an additional option, not a replacement for Fable 5.
+| Model | Concrete model ID | Effort | Role |
+| --- | --- | --- | --- |
+| Opus 5.5 | `claude-opus-5-5` | medium | Default for most code writing, visual design, routine debugging, refactors, ordinary explanations, evidence synthesis and product work |
+| GPT-6 Sol | `gpt-6-sol` | medium | Codex interactive default; substantial supporting implementation, source exploration and independent review |
+| GPT-6 Luna | `gpt-6-luna` | high | Small noncoding tasks: extraction, classification, summarization and structured transformations with explicit acceptance criteria |
+| GPT-6 Astra | `gpt-6-astra` | high | Difficult mechanisms, exhaustive audits, complex debugging and demanding computer use |
+| Fable 5 | `claude-fable-5` | medium | Intent interpretation, code cleanliness review, selected design judgment and collaborative explanation |
+| Fable 5.1 | `claude-fable-5-1` | high | Alternative design judgment; stalled PR recovery and coupled long-running work where its extra usage is justified |
 
-- Choose Fable 5 when concise, maintainable code, UI/UX, API design, interpreting product intent, or low-friction collaboration matters most.
-- Choose GPT-6 Astra when difficult mechanisms, debugging, broad implementation with a checkable endpoint, computer use, or multimodal reasoning matters most. Its code quality makes it a primary implementer, not just a worker under a Claude-written plan. Give it concrete constraints and completion criteria.
-- Choose Fable 5.1 only when its specific strengths justify the extra usage: stalled PR recovery, changes that must stay consistent across several packages, difficult audits and cleanup, extended review-and-fix work, or visual design and animation beyond Fable 5's results. Explain the relevant strength in the dispatch brief. A newer version alone is not a reason to select it.
-- Choose GPT-5.6 Terra for bounded, well-specified supporting work and GPT-5.6 Luna for short mechanical work. These remain useful for exploration, classification, and bulk changes; they are not the default for most code writing. GPT-5.6 Sol remains available for focused execution when Astra's overhead or behavior is a poor fit.
-- Opus 5 is a fallback for a bounded task that benefits from its diligence or when Claude subscription availability makes it useful. It is not the default implementer or the automatic escalation for hard judgment. Sonnet 5 mainly handles thin workflow wrappers.
-- For substantial changes, use one independent Claude reviewer and one independent GPT reviewer, each covering both review axes, per `review-loop`. Normally choose Fable 5 and GPT-6 Astra. Select Fable 5.1 for the review only when one of its strengths above is needed. Match cheaper reviewers to smaller changes.
-- Never use Haiku.
+Opus 5.5 is the ordinary coding and visual-design choice. Review the Code Style criteria separately from runtime correctness. Fable 5 remains available when its particular strengths matter. For Opus, move to high for a difficult task and xhigh for a defined hard phase. Max is an exception requiring a concrete reason; do not assume a higher effort improves the result. Low is not the coding default. Start Sol at medium and Luna at high rather than inheriting the previous generation's effort settings.
 
-`GPT` in a skill means the GPT family, with the concrete model and effort chosen here at dispatch time. It is not an executable model ID and does not mean Sol by default. Pass an actual model ID supported by the current tool or CLI. Prefer native subagent tools; use `cli-subagents` only for a model the native tools cannot reach. If a model is unavailable, choose a supported alternative and report the substitution.
+Choose review models and effort automatically from the actual change. Assess complexity and the consequences of a missed defect separately. Complexity includes interacting state, concurrency, unfamiliar mechanisms and coupled package boundaries. Risk includes data loss, authorization failures, money movement, destructive migrations, public compatibility and difficult rollback. A small diff can be high risk; a large mechanical diff can be low complexity. Weak tests or uncertain behavior increase the depth needed.
 
-### Local ratings and usage
+| Review needs | Starting selection |
+| --- | --- |
+| Bounded, familiar change with limited consequences and clear checks | Fable 5 medium and GPT-6 Sol medium |
+| Substantial interacting logic with moderate consequences and a checkable endpoint | Fable 5 medium and GPT-6 Sol high |
+| Difficult mechanisms, weak verification of critical behavior, or serious consequences if a defect escapes | Fable 5 medium and GPT-6 Astra high |
 
-Updated 2026-09-05. These are provisional routing judgments for this user's setup, not benchmark measurements or vendor specifications. Intelligence, taste, and speed use a relative 1–10 scale. Intelligence means difficulty the model can handle; behavior notes describe how much supervision it needs. Speed means time to useful completion, including verification and rework, not tokens per second. Taste covers code and product design; Astra's UI weakness needs its own rating.
+Choose each reviewer for the work, rather than treating the pairs as fixed. Select Fable 5.1 high when coupled architectural changes, difficult cleanup or stalled review/recovery specifically need its stronger cross-package judgment. High risk alone is not a reason to upgrade every reviewer. Keep cleanliness and maintainability in scope at every level; both reviewers cover standards and spec.
 
-Cost scores run from 1–100, higher meaning less personal cost or usage pressure. Codex use has no incremental monetary cost to this user, so GPT models share 100 here; that does not mean their API prices, token use, or subscription limits are identical. Terra and Luna can still reduce latency and reserve frontier-model quota when account metering distinguishes models. Check actual limits. Claude scores are rough local preferences, not measured ratios.
+Use two fresh independent reviewers from different model families for substantial changes. Give them the pinned diff and requirements. Briefly state the selection and the concrete complexity or risk that motivated it, then dispatch without asking the user to choose models. Reassess if findings expose greater complexity or consequences, while keeping the existing review-pass limit. The implementing agent must not be its only reviewer. An explicit user choice of reviewer count, model or number of passes overrides this automatic selection; no override is required.
 
-| Model | Personal cost score | Intelligence | Taste | Speed | Default effort | Role / usage consideration |
-| --- | --- | --- | --- | --- | --- | --- |
-| GPT-6 Astra | 100 | 10 | 8 code / 5 UI | 5 | high | Primary coder; difficult reasoning and computer use; excessive verification can dominate small tasks |
-| GPT-5.6 Sol | 100 | 8.5 | 6 | 8 | high | Focused execution fallback; relatively efficient, but code can grow too much |
-| GPT-5.6 Terra | 100 | 6.5 | 5 | 9 | medium | Bounded supporting work; lower capability than Sol or Astra |
-| GPT-5.6 Luna | 100 | 6 | 4 | 10 | low | Short mechanical tasks; avoid difficult autonomous work |
-| Sonnet 5 | 10 | 5 | 7 | 4 | medium | Thin wrappers; limited reason to use for substantial work |
-| Opus 5 | 50 | 7 | 8 | 3 | high | Diligent but unpredictable; verification overhead can dominate bounded tasks |
-| Fable 5 | 20 | 9 | 9 | 6 | medium | Primary coder; strong intent, code taste, and collaboration |
-| Fable 5.1 | 10 | 10 | 10 | 5 | high | Selective upgrade; significantly more usage per task in this setup |
+Retain GPT-5.6 Sol, Terra and Luna, and Opus 5 only as explicit compatibility fallbacks. Read `references/model-routing-legacy.md` only when selecting an older model. Its notes describe those models, not their replacements. Sonnet remains a thin wrapper when a Claude-only workflow cannot call GPT directly. Never use Haiku. When the requested model is unavailable, report the supported substitution.
 
-Budget more usage per task for Fable 5.1 than Fable 5. It generates more output, takes on broader tasks, and can multiply usage through delegation. Use it only when its specific strengths justify that cost.
+### Local usage and pricing
 
-Separate subscription usage from API cost. As of September 2026, Fable 5.1 API pricing is $10 input / $50 output per million tokens, with cache reads at $0.25 per million. Cheaper cache reads can offset some additional output cost in agentic workloads. Compare actual task costs rather than assuming either version is always cheaper.
+The subscription pool is one Claude Max 20x account plus two Max 5x accounts, and one Codex Pro 5x account, behind a load-balancing proxy. Within included usage, both providers have zero incremental cash cost. Account capacity, resets and task completion still matter. A five-percent delta on a 5x account is not equivalent to the same delta on a 20x account.
 
-The table is the source of truth for default effort. Effort changes how long a model reasons; it does not change its capability tier. Escalate to Astra when work exceeds the selected tier. In normal routing, Sol, Opus 5, and Fable 5 stop at high; Fable 5.1 starts at high, with limited observed benefit from going higher. An explicit configured task override takes precedence.
+Standard API prices per million uncached input/cached input/output tokens are Opus 5.5 $4/$0.20/$20, GPT-6 Sol $2/$0.20/$10 and GPT-6 Luna $0.10/$0.01/$0.50. API cache-write and processing premiums are separate. Fable 5.1 API input/cache-read/output prices are $10/$0.25/$50 per million tokens. These prices are not subscription meters.
+
+Standard Codex credits per million uncached input/cached input/output tokens are Astra 250/25/1,250, Sol 50/5/250 and Luna 2.5/0.25/12.5. For an identical token mix, Sol uses one-fifth Astra's credits and Luna one-twentieth Sol's. Model token demand and caching change per-task cost. Fast mode consumes 2.5x Standard Codex credits where available. Prefer Standard unless speed warrants the extra draw.
+
+Treat Claude per-model subscription depletion as unmeasured until account readings establish it. Report token-derived estimates separately from actual five-hour and weekly depletion. Preserve cache locality when the existing proxy supports it, and record the actual returned model when fallbacks occur. Never infer upstream identity solely from the requested model ID.
+
+### Opus 5.5 behavior and dispatch
+
+These are provisional launch-era observations. Revisit them after ordinary work on this setup.
+
+- Use it for complete scoped coding tasks. Give it the requested outcome, files or repository, preserved behavior, and finite checks. Ordinary work starts at medium. It can produce well-organized shared definitions and thorough tests, but medium can still spend substantial reasoning and output on source inspection and fixtures. Require the actual package typecheck even when runtime tests pass; branded-type assertion errors can survive those tests. Keep fixtures focused on required behavior.
+- Higher effort can cause long thinking and repeated work. Max has produced multi-hour planning loops with little progress. If progress stalls, inspect the current diff, running commands and remaining acceptance criteria; narrow the task, lower effort or hand it off. Do not answer a stall by increasing effort automatically.
+- Long performance tasks can drift into repairs unrelated to the requested improvement. Name the measured bottleneck and behaviors to preserve. A nearby issue belongs in the report unless fixing it is necessary to the task.
+- It can worry about the context window and invent explanations about work being lost. State whether the filesystem persists and whether the client compacts automatically. Keep a brief progress record with paths, current state and remaining checks. After compaction, read those artifacts and continue. Require evidence for crash, delay and data-loss claims.
+- A progress report can end a turn while requested work remains. Name the full endpoint in the brief, including verification and any explicitly authorized publication steps. Status updates should accompany continued work. A report, a started command and a launched delegate do not establish completion. Preserve genuine user-input blockers.
+- Reports are usually clearer than Opus 5's. Use the user's existing writing preferences and ask for literal, concise status. Avoid adding repeated prose restrictions without a demonstrated need.
+- It is promising for browser games, Three.js and animation. Start with a working medium-effort version and use a separate refinement phase if needed. Verify controls, frame behavior, lighting, transparency and flicker in the application.
+- Use Opus 5.5 for visual design, including marketing pages and frontend polish. The user reports strong results here. Fable 5.1 remains an alternative when a different design approach or further refinement is useful. For an existing product, preserve components, branding, navigation and interaction sequence and name the specific visual changes allowed.
+- It may miss issues in an exhaustive codebase review even when its own implementation is good. Keep an independent GPT reviewer; use Astra for deep audits.
+- Give multi-application tasks the relevant sources and applications explicitly. It can start acting before discovering context the brief left implicit.
+- The model's public API always uses adaptive thinking. Lower effort controls latency more reliably than instructions to stop thinking. Do not carry manual thinking budgets, disabled thinking, or forced tool selection into an integration without checking compatibility.
+- Progress updates can arrive in thinking blocks rather than text. An apparently silent run may be a client-rendering issue. Inspect supported progress output before blaming the model or adding repeated prompts.
+- Model switches do not guarantee preservation of prior thinking. Pass concrete artifacts and a short state summary to a fresh delegate. Use documented per-message effort changes if supported; changing top-level effort can invalidate cache.
+
+### GPT-6 Sol behavior and dispatch
+
+Use Sol for everyday and complex code work as well as bounded support. Keep its brief tied to a checkable endpoint. Specify repository conventions, the relevant compiler settings and verification command. Use high for a difficult bounded task; use Astra when the work needs stronger judgment or exhaustive reasoning.
+
+For strict TypeScript work, name the actual compiler flags and require the type checker, including `noUncheckedIndexedAccess` when the project uses it. For async work, require checks that observe pending work, scheduling after failure and the exact returned rejection. Inspect the assertions behind its test claims.
+
+Keep the ordinary write-less and verification skills. Sol can write compact production code that fits an existing query architecture, but inspect cross-package type ownership and duplicated defaults. Ask it to reuse a named shared contract rather than restating filter shapes in every caller. New tests must compile and execute; an incorrect import can break a test while production code is sound. Assess cleanliness separately from runtime correctness. Judge long sessions, UI work and ambiguous product tasks by their actual artifacts; escalate when completeness or judgment is inadequate.
+
+### GPT-6 Luna behavior and dispatch
+
+Use Luna for small noncoding tasks with a precise contract: extraction, classification, summarization, and structured data transformations. Give it the source, required output format and a finite correctness check. Do not route implementation, code review, architectural decisions or coupled migrations to Luna. Use Sol for supporting work requiring code judgment and Opus for ordinary implementation.
+
+High is provisional for these noncoding roles. Tune effort against representative tasks; an optimal default has not been established. Its low per-token price does not establish time to completion or factual reliability. Evaluate reliability on representative noncoding tasks before expanding its role.
+
 
 ### GPT-6 Astra behavior and delegation
 
 - Strengths: difficult reasoning, real code and bug fixes, 3D and image understanding, and operating professional software. Use it for compiler rewrites, performance work, complex puzzles, and testing real applications to find and fix edge cases. Difficult puzzles can still require hints; distinguish solving the problem from looking up a published answer.
 - It can use a browser or desktop app to verify actual behavior, make a temporary tool to inspect results, edit images in Affinity, and set up and color-correct Final Cut projects. Give it the application, assets, target result, and a concrete way to check success. It is also strong at writing prompts for other agents.
-- UI/UX is a weak point despite better code and prose. It can invent a new brand, replace an existing interface during a port, add excessive labels and subtitles, and turn simple actions into complicated flows. For a migration, explicitly preserve the existing components, branding, navigation, and interaction sequence; define exactly which parts may change. Delegate new visual design to Fable when that is the central task.
+- UI/UX is a weak point despite better code and prose. It can invent a new brand, replace an existing interface during a port, add excessive labels and subtitles, and turn simple actions into complicated flows. For a migration, explicitly preserve the existing components, branding, navigation, and interaction sequence; define exactly which parts may change. Delegate new visual design to Opus 5.5 when that is the central task; use Fable 5.1 for an alternative design judgment.
 - It can stop after answering a question, making a local fix, starting subagents, or responding to a side request while the original task remains incomplete. Name the endpoint and keep it active across follow-ups. For authorized PR work, specify the whole loop: fix, verify, commit, push, wait for checks and reviews on the new commit, assess findings, and repeat until ready. Launching workers or making one pass is not completion.
 - Vague instructions can produce unwanted initiative while clear next steps still get skipped. Its confidence and summaries can imply delivery even when changes remain local. Require it to report the actual state, such as local edits, commit, pushed branch, PR, checks, or merge, with evidence for what occurred and a clear statement of what remains. Do not infer a push or release from "fixed."
 - Earlier mistakes can become a repeated conversational pattern. Give an explicit correction describing future behavior, not just an expression of frustration. If the same failure repeats, hand a fresh agent the current artifacts, outstanding work, and corrected instructions. Carry the intended outcome forward.
@@ -114,32 +150,20 @@ The table is the source of truth for default effort. Effort changes how long a m
 
 ### Fable 5.1 behavior and delegation
 
-Use this model for the specific strengths below when Fable 5 or GPT is unlikely to finish as well for less usage.
+Use this model for the specific strengths below when Opus 5.5, Fable 5 or GPT is unlikely to finish as well for less usage.
 
 - It is particularly useful for taking over stalled PRs that have become repeated review/fix loops, finding the important remaining issues, and finishing the change. It is a useful escalation for difficult streaming/projection bugs after other agents stall. Send the current branch, original intent, failed approaches, and full outstanding findings to one takeover agent.
 - It handles changes across package boundaries and can carry audit, cleanup, implementation, and review work through an extended task. Examples span server, web, desktop, and mobile packages, as well as cleanup ordered so deletions simplify later PRs. This is a reason to use 5.1 for a coupled change; keep the scope tied to the user's outcome.
-- Visual design and animation are specific strengths. It produces better marketing pages, tasteful transitions, game movement and feedback, and useful Blender work. Use Anthropic's frontend design skill for homepage work when available. Visual polish can coexist with awkward controls and incomplete details, so check the interaction as well as its appearance. Prefer Astra for general browser/desktop operation.
+- Visual design and animation are specific strengths. Use it as an alternative for marketing pages, tasteful transitions, game movement and feedback, and Blender work when Opus 5.5 needs another design approach. Use Anthropic's frontend design skill for homepage work when available. Visual polish can coexist with awkward controls and incomplete details, so check the interaction as well as its appearance. Prefer Astra for general browser/desktop operation.
 - It may run many tool calls with almost no progress text. Ask for brief progress updates when the user or orchestrator needs visibility; silence alone is not a hang.
 - Writing is generally clearer, with fewer stock phrases and unexplained jargon, but can become dense and long. Ask for literal language, shorter sentences, and paragraph breaks. Older blanket bans on formatting may now suppress useful structure. When summarizing sources, request marked quotations and attribution; it can reproduce passages without marking them as quotes.
 - It can still pause to ask whether to proceed, repair nearby code outside scope, or add too many tests. State the authorized endpoint, preservation constraints, and appropriate verification. For long tasks, identify what compaction must retain: decisions, outstanding work, constraints, and artifact locations.
 - Better reasoning does not eliminate confident mistakes about existing behavior. In a PR-linking audit it incorrectly denied automatic linking until corrected. Provide concrete terminology and require source evidence for assertions that a behavior does not exist.
 - Stronger delegation can multiply usage rapidly. Assign bounded work and the needed concurrency, and use cheaper GPT models for supporting tasks. Fable 5.1's ability to manage many agents is not a reason to make every worker Fable 5.1.
 
-### Opus 5 behavior and delegation
+### Fable 5 and Sonnet behavior
 
-Favor bounded tasks over unsupervised work with ambiguous requirements. Review the actual code before treating an Opus implementation as ready to merge.
-
-- Useful traits: diligence, good clarifying questions, persistence, and catching edges Fable can miss. It can provide a useful second view on a bounded plan or implementation. Its code taste is generally better than GPT-5.6's, but below Fable's.
-- It can turn uncertainty into repeated double-, triple-, and quadruple-checking, write more code than Fable, and take substantially longer. Give it the actual difficulty, smallest acceptable scope, and a finite verification endpoint. Thoroughness alone does not justify further work.
-- When asked to publish an HTML plan, it opened a browser for an unsolicited visual check, acknowledged a request to stop, then opened it twice more. It blamed the publishing tool without evidence before retracting the claim. Give clear tool-use boundaries and check that corrections changed its actions. Demand evidence for causal explanations rather than accepting a confident apology.
-- It can follow explicit instructions well, but conflicting system prompts, skills, and repeated restrictions can over-constrain it. Use one coherent task brief. Its tendency to fill gaps with unsupported explanations makes it a poor automatic choice for ambiguous, unsupervised work. It has less factual knowledge than Fable, so prefer Fable for obscure platforms and knowledge-heavy tasks, and verify factual claims against sources when using Opus.
-- Lower API prices do not guarantee proportional savings. Opus can use more tokens per task than Fable and spend substantial time checking. Raw token counts do not map one-to-one to subscription usage because pricing and model-specific allowances and metering differ. Subscription allowances have permitted more Opus work than Fable work. Check current account limits.
-
-### Other models' behavior
-
-- Fable 5 remains a primary coding model. It writes concise code that fits an existing system, interprets intent well, knows obscure platforms, and is useful for planning and orchestration. It can favor a clever workaround over addressing the whole problem, skip edge cases, or stop short while believing the result is good enough. Give it the required behavior and preservation constraints; ask the GPT reviewer to investigate missing cases and actual runtime behavior.
-- GPT-5.6 Sol is useful for focused execution, system tasks, and difficult mechanisms when the scope is clear. It is literal and produces too much code or tests or expands a fix. Give it explicit acceptance criteria and existing code examples, then use a Fable review for simplification and design quality. Its ratings and these observations are specific to Sol, not the whole GPT family.
-- GPT-5.6 Terra is the bounded supporting worker. Give it concrete inputs, files, and a checkable output; escalate when the task requires substantial inference or judgment. GPT-5.6 Luna is for short mechanical tasks with obvious correctness checks. Raising effort does not make either a substitute for Astra on hard autonomous work.
+- Fable 5 is a specialist for intent interpretation, code cleanliness review, and selected implementation. It writes concise code that fits an existing system, interprets intent well, knows obscure platforms, and is useful for planning and orchestration. It can favor a clever workaround over addressing the whole problem, skip edge cases, or stop short while believing the result is good enough. Give it the required behavior and preservation constraints; ask the GPT reviewer to investigate missing cases and actual runtime behavior.
 - Sonnet 5 mainly runs thin wrappers when a Claude-only workflow needs to call GPT. Keep its brief mechanical and pass through the worker's artifacts without having the wrapper redesign the solution. Use low effort for the wrapper.
 
 ### GPT inside Claude Code workflows
@@ -147,6 +171,6 @@ Favor bounded tasks over unsupervised work with ambiguous requirements. Review t
 Use a thin Claude wrapper only when the workflow's model parameter cannot select GPT directly.
 
 - The wrapper uses `model: 'sonnet', effort: 'low'`, reads `cli-subagents`, and runs `codex exec -m <chosen-gpt-model>` with a concrete supported model ID and explicit effort. Return the worker's report and artifacts; use `schema` for structured output where supported.
-- Label workers with the actual model, for example `gpt-6-astra:review-auth`, `gpt-5.6-terra:migrate-data`, or `gpt-5.6-luna:classify`. The wrapper's visible model is not the worker's model.
+- Label workers with the actual model, for example `gpt-6-astra:review-auth`, `gpt-6-sol:migrate-data`, or `gpt-6-luna:classify`. The wrapper's visible model is not the worker's model.
 - Parallel implementation workers use `isolation: 'worktree'` or separate checkouts to avoid collisions.
 - Workflow token budgets count Claude wrapper usage, not the GPT worker's usage. Track that separately when a budget or account limit matters.

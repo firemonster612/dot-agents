@@ -32,13 +32,15 @@ Fail early if the ref is invalid or the diff is empty. Don't make reviewers redi
 
 **Standards:** every instruction that applies to the changed files, including scoped `AGENTS.md`/`CLAUDE.md`, `CONTRIBUTING.md`, coding standards, architecture docs, and test conventions, plus `CONTEXT.md` and the ADRs under `docs/adr/` touching the area.
 
-## 3. Dispatch two reviewers
+## 3. Select and dispatch reviewers
 
 **Two reviewers, each covering both axes, on different model families.** Both get the same target and the same inputs; the independence comes from the family split, not from dividing the work. Add a third reviewer only for an unusually high-stakes change.
 
 Each reviewer gets: the `reviewing-code` skill as a path, the pinned target command and commit list, the inputs from step 2, and the direct-work line. Nothing else — the axes, finding shape, and smell baseline are `reviewing-code`'s to apply. Neither reviewer sees the other's report. Keep both read-only.
 
-Route models per the rubric in `AGENTS.md`: one family strong on judgment and taste, the other on execution focus. Where you have no native subagents, `cli-subagents` carries the command shapes.
+Select the concrete models and effort automatically through the review-routing guidance in `AGENTS.md`. Assess both the complexity of understanding the change and the consequences if something slips through. Use the actual diff, affected behavior, verification evidence and rollback constraints; line count alone is not a proxy for either. Keep cleanliness and maintainability in scope alongside correctness.
+
+State the chosen reviewers and the reason in one short sentence, then dispatch. The user does not need to choose models or approve routine reviewer selection. Honor an explicit user override when one is supplied. Resolve supported model IDs and effort before dispatch, prefer native tools, and use `cli-subagents` only for models native tools cannot reach. If a model is unavailable, choose a supported alternative appropriate to the same work and report the substitution.
 
 ## 4. Compile and triage before fixing anything
 
@@ -50,7 +52,7 @@ One implementer with the full consolidated, verified findings list, not one fixe
 
 ## 6. Repeat
 
-Review → triage → fix, until neither axis has remaining complaints or you hit 2 iterations (or whatever count the user set).
+Review → triage → fix, until neither axis has remaining complaints or you hit 2 iterations (or whatever count the user set). If findings reveal greater complexity or consequences than initially assessed, reselect reviewers through AGENTS.md for the remaining passes. Changing models does not reset the iteration limit.
 
 ## Reporting
 

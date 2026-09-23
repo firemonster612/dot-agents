@@ -45,7 +45,7 @@ The right decomposition depends on the question. Use your judgment. For narrow q
 Spawn all explorers in a single message:
 
 - `subagent_type`: `generalPurpose`
-- `model`: your configured how-explorer model (default `grok-4.5-fast-xhigh`)
+- `model` and `effort`: resolve the source-exploration role through `AGENTS.md`. Pass a supported model ID and effort as separate fields; honor an explicit task override.
 - `readonly`: `true`
 
 Each explorer gets the same base prompt from `references/explorer-prompt.md` plus a specific exploration angle naming its slice. Each explorer should:
@@ -64,7 +64,7 @@ Then proceed to Step 3.
 Spawn a single Task subagent that explores and explains in one pass:
 
 - `subagent_type`: `generalPurpose`
-- `model`: your configured how-explainer model (default `claude-fable-5-thinking-max`)
+- `model` and `effort`: resolve ordinary explanation through `AGENTS.md`; use its intent-interpretation specialist when product intent is central. Pass model ID and effort separately; honor an explicit task override.
 - `readonly`: `true`
 
 The agent does its own exploration (Glob, Grep, Read) and writes the explanation directly. Read `references/explainer-prompt.md` for the communication style and output format. Same structure, just no explorer findings as input.
@@ -76,7 +76,7 @@ Proceed to Step 4.
 Once all explorers return, spawn a single Task subagent to synthesize their findings into one coherent explanation:
 
 - `subagent_type`: `generalPurpose`
-- `model`: your configured how-explainer model (default `claude-fable-5-thinking-max`)
+- `model` and `effort`: resolve ordinary explanation through `AGENTS.md`; use its intent-interpretation specialist when product intent is central. Pass model ID and effort separately; honor an explicit task override.
 - `readonly`: `true`
 
 The explainer gets all explorers' findings and writes the human-facing explanation (output format below). Read `references/explainer-prompt.md` for the full prompt template. The explainer reconciles overlapping findings, resolves contradictions, and weaves the slices into a unified picture.
@@ -109,12 +109,12 @@ Run the full explain flow above (Steps 1-4). You must understand the architectur
 
 ### Step 2. Spawn Critics
 
-After the explanation is complete, spawn one architectural critic per model in your configured how-critics list (defaults `claude-fable-5-thinking-max`, GPT, `grok-4.5-fast-xhigh`, `claude-opus-5-thinking-xhigh`), all in a single message.
-Resolve GPT to a concrete supported model and effort using the routing rubric in `AGENTS.md` before dispatch.
+After the explanation is complete, choose the independent review pair through `AGENTS.md`, or use the user's explicit critic roster. For an architectural critique without a diff, assess the scoped subsystem's coupling, state and failure consequences, and give critics the relevant files and question instead of requiring a change diff. Run the critics concurrently within the available agent slots. Resolve every role to a supported model ID and a separate effort value before dispatch.
 
 For each critic:
 - `subagent_type`: `generalPurpose`
-- `model`: the configured model's concrete supported value. For the GPT family slot, use the model resolved before dispatch, never `GPT` itself. The configured entries carry the explicit effort levels for the other critics; choose GPT effort through the `AGENTS.md` routing rubric. These are minimum reasoning levels. The lead should escalate any model when the architecture warrants deeper analysis.
+- `model`: the concrete supported ID selected through the routing rubric
+- `effort`: the selected model's default, adjusted for this task through the rubric
 - `readonly`: `true`
 
 Read `references/critic-prompt.md` for the prompt template. Each critic gets:
