@@ -11,6 +11,7 @@ git clone https://github.com/firemonster612/typescript-beautify ~/.agents/skills
 ln -s ~/.agents/skills ~/.claude/skills
 ln -s ~/.agents/AGENTS.md ~/.claude/CLAUDE.md
 ln -s ~/.agents/AGENTS.md ~/.codex/AGENTS.md
+ln -s ~/.agents/claude/rules ~/.claude/rules
 ```
 
 ## How to use
