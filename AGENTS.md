@@ -70,26 +70,49 @@ Choose the model for the task before dispatch. These defaults apply when the use
 
 | Model | Concrete model ID | Effort | Role |
 | --- | --- | --- | --- |
-| Opus 5.5 | `claude-opus-5-5` | medium | Default for most code writing, visual design, routine debugging, refactors, ordinary explanations, evidence synthesis and product work |
-| GPT-6 Sol | `gpt-6-sol` | medium | Codex interactive default; substantial supporting implementation, source exploration and independent review |
+| Opus 5.5 | `claude-opus-5-5` | high | Default worker: code writing, visual design, routine debugging, refactors, explanations, evidence synthesis and product work. Default Claude-side reviewer |
+| GPT-6 Sol | `gpt-6-sol` | high | Default GPT-side reviewer; Codex interactive default; supporting implementation and source exploration |
 | GPT-6 Luna | `gpt-6-luna` | high | Small noncoding tasks: extraction, classification, summarization and structured transformations with explicit acceptance criteria |
-| GPT-6 Astra | `gpt-6-astra` | high | Difficult mechanisms, exhaustive audits, complex debugging and demanding computer use |
-| Fable 5 | `claude-fable-5` | medium | Intent interpretation, code cleanliness review, selected design judgment and collaborative explanation |
+| GPT-6 Astra | `gpt-6-astra` | high | Highest ceiling, uneven floor. Finding defects others miss, hard debugging, deep audits, demanding computer use |
+| Fable 5 | `claude-fable-5` | medium | Claude-side escalation when the task depends on knowledge Opus may lack: obscure platforms, niche libraries, specialized domains |
 | Fable 5.1 | `claude-fable-5-1` | high | Alternative design judgment; stalled PR recovery and coupled long-running work where its extra usage is justified |
 
-Opus 5.5 is the ordinary coding and visual-design choice. Review the Code Style criteria separately from runtime correctness. Fable 5 remains available when its particular strengths matter. For Opus, move to high for a difficult task and xhigh for a defined hard phase. Max is an exception requiring a concrete reason; do not assume a higher effort improves the result. Low is not the coding default. Start Sol at medium and Luna at high rather than inheriting the previous generation's effort settings.
+Opus 5.5 is the default worker. There is plenty of Opus usage, so send ordinary implementation to it rather than rationing it. Run it at high. Drop to medium for small, well-specified or mechanical work, and use xhigh for a defined hard phase. Max is an exception requiring a concrete reason; do not assume a higher effort improves the result. Low is not the coding default.
 
-Choose review models and effort automatically from the actual change. Assess complexity and the consequences of a missed defect separately. Complexity includes interacting state, concurrency, unfamiliar mechanisms and coupled package boundaries. Risk includes data loss, authorization failures, money movement, destructive migrations, public compatibility and difficult rollback. A small diff can be high risk; a large mechanical diff can be low complexity. Weak tests or uncertain behavior increase the depth needed.
+Fable 5 and Fable 5.1 are larger models with more pretraining, so they know more. Opus 5.5 behaves better: it follows instructions more closely, finishes the whole task and stops less often short of it. Choose Fable when the task needs knowledge Opus is likely missing, not because the task is hard or high-stakes.
 
-| Review needs | Starting selection |
-| --- | --- |
-| Bounded, familiar change with limited consequences and clear checks | Fable 5 medium and GPT-6 Sol medium |
-| Substantial interacting logic with moderate consequences and a checkable endpoint | Fable 5 medium and GPT-6 Sol high |
-| Difficult mechanisms, weak verification of critical behavior, or serious consequences if a defect escapes | Fable 5 medium and GPT-6 Astra high |
+Run Sol at high by default and drop to medium for bounded, well-checked work. Its scores keep rising through xhigh, so use xhigh for a hard review before switching to Astra. Max is not reliably better than xhigh. Start Luna at high. Review the Code Style criteria separately from runtime correctness.
 
-Choose each reviewer for the work, rather than treating the pairs as fixed. Select Fable 5.1 high when coupled architectural changes, difficult cleanup or stalled review/recovery specifically need its stronger cross-package judgment. High risk alone is not a reason to upgrade every reviewer. Keep cleanliness and maintainability in scope at every level; both reviewers cover standards and spec.
+### Review routing
 
-Use two fresh independent reviewers from different model families for substantial changes. Give them the pinned diff and requirements. Briefly state the selection and the concrete complexity or risk that motivated it, then dispatch without asking the user to choose models. Reassess if findings expose greater complexity or consequences, while keeping the existing review-pass limit. The implementing agent must not be its only reviewer. An explicit user choice of reviewer count, model or number of passes overrides this automatic selection; no override is required.
+Every review uses one Claude-side and one GPT-side reviewer. Each starts at its default and moves up independently when the change calls for it.
+
+| Side | Default | Step up to |
+| --- | --- | --- |
+| Claude | Opus 5.5 high | Fable 5 medium |
+| GPT | GPT-6 Sol high | GPT-6 Astra high |
+
+Astra finds defects no other model finds, and it also misses things other models catch. That makes it the strongest second reviewer, never the only one. The Claude-side reviewer stays in every Astra review, and the dispatcher verifies Astra's findings in triage like any other. Step up to it when a missed defect would be expensive or the mechanism is hard to reason about. Examples:
+
+- Authentication, authorization, session handling or secrets.
+- Concurrency, locking, retries, queues, or async code where ordering and cancellation matter.
+- Database migrations, schema changes, or anything that can lose or corrupt data.
+- Payments, billing, quotas, or other money movement.
+- Streaming, sync, cache invalidation, or projection state that has to stay consistent across clients.
+- Public APIs, wire formats, or config that other packages or users depend on.
+- Security-sensitive parsing, sandboxing, or shell and path handling.
+- Changes to critical behavior where the tests are weak or the result can't be checked locally.
+
+Opus 5.5 reviews refactors, module reshaping, ambiguous specs and cleanliness well. Step up the Claude side to Fable 5 only when reviewing the change depends on knowledge Opus may not have. Examples:
+
+- An obscure or legacy platform, language or toolchain, such as an embedded RTOS, COBOL, or a niche build system.
+- A specialized standard or protocol whose details matter, such as a codec, a file format, a wire protocol or a regulatory rule.
+- A library or API used in a way its docs barely cover, where correctness depends on knowing its internals.
+- Domain-heavy logic in fields like numerical methods, cryptography, finance or typography.
+
+Decide from the actual change. Assess complexity and consequences separately: a small diff can be high risk, and a large mechanical diff can be simple. High risk alone does not mean both sides step up. Keep cleanliness and maintainability in scope at every level; both reviewers cover standards and spec.
+
+Give both fresh reviewers the pinned diff and requirements. Briefly state the selection and the concrete complexity or risk that motivated it, then dispatch without asking the user to choose models. Reassess if findings expose greater complexity or consequences, while keeping the existing review-pass limit. The implementing agent must not be its only reviewer. An explicit user choice of reviewer count, model or number of passes overrides this automatic selection; no override is required.
 
 Retain GPT-5.6 Sol, Terra and Luna, and Opus 5 only as explicit compatibility fallbacks. Read `references/model-routing-legacy.md` only when selecting an older model. Its notes describe those models, not their replacements. Sonnet remains a thin wrapper when a Claude-only workflow cannot call GPT directly. Never use Haiku. When the requested model is unavailable, report the supported substitution.
 
@@ -107,13 +130,13 @@ Treat Claude per-model subscription depletion as unmeasured until account readin
 
 These are provisional launch-era observations. Revisit them after ordinary work on this setup.
 
-- Use it for complete scoped coding tasks. Give it the requested outcome, files or repository, preserved behavior, and finite checks. Ordinary work starts at medium. It can produce well-organized shared definitions and thorough tests, but medium can still spend substantial reasoning and output on source inspection and fixtures. Require the actual package typecheck even when runtime tests pass; branded-type assertion errors can survive those tests. Keep fixtures focused on required behavior.
+- Use it for complete scoped coding tasks. Give it the requested outcome, files or repository, preserved behavior, and finite checks. Ordinary work starts at high. It can produce well-organized shared definitions and thorough tests, but it can spend substantial reasoning and output on source inspection and fixtures. Require the actual package typecheck even when runtime tests pass; branded-type assertion errors can survive those tests. Keep fixtures focused on required behavior.
 - Higher effort can cause long thinking and repeated work. Max has produced multi-hour planning loops with little progress. If progress stalls, inspect the current diff, running commands and remaining acceptance criteria; narrow the task, lower effort or hand it off. Do not answer a stall by increasing effort automatically.
 - Long performance tasks can drift into repairs unrelated to the requested improvement. Name the measured bottleneck and behaviors to preserve. A nearby issue belongs in the report unless fixing it is necessary to the task.
 - It can worry about the context window and invent explanations about work being lost. State whether the filesystem persists and whether the client compacts automatically. Keep a brief progress record with paths, current state and remaining checks. After compaction, read those artifacts and continue. Require evidence for crash, delay and data-loss claims.
 - A progress report can end a turn while requested work remains. Name the full endpoint in the brief, including verification and any explicitly authorized publication steps. Status updates should accompany continued work. A report, a started command and a launched delegate do not establish completion. Preserve genuine user-input blockers.
 - Reports are usually clearer than Opus 5's. Use the user's existing writing preferences and ask for literal, concise status. Avoid adding repeated prose restrictions without a demonstrated need.
-- It is promising for browser games, Three.js and animation. Start with a working medium-effort version and use a separate refinement phase if needed. Verify controls, frame behavior, lighting, transparency and flicker in the application.
+- It is promising for browser games, Three.js and animation. Start with a working version and use a separate refinement phase if needed. Verify controls, frame behavior, lighting, transparency and flicker in the application.
 - Use Opus 5.5 for visual design, including marketing pages and frontend polish. The user reports strong results here. Fable 5.1 remains an alternative when a different design approach or further refinement is useful. For an existing product, preserve components, branding, navigation and interaction sequence and name the specific visual changes allowed.
 - It may miss issues in an exhaustive codebase review even when its own implementation is good. Keep an independent GPT reviewer; use Astra for deep audits.
 - Give multi-application tasks the relevant sources and applications explicitly. It can start acting before discovering context the brief left implicit.
@@ -138,7 +161,14 @@ High is provisional for these noncoding roles. Tune effort against representativ
 
 ### GPT-6 Astra behavior and delegation
 
-- Strengths: difficult reasoning, real code and bug fixes, 3D and image understanding, and operating professional software. Use it for compiler rewrites, performance work, complex puzzles, and testing real applications to find and fix edge cases. Difficult puzzles can still require hints; distinguish solving the problem from looking up a published answer.
+Astra has broad pretraining like Fable and the strongest reasoning of any model here, but it is uneven. It can solve a problem nothing else solves and then fail at something simple in the same session. Fable is more consistent, and Opus 5.5 behaves better. Use Astra where its peak matters and a checker catches its low points.
+
+- Use it for work where one strong insight is worth a lot and a wrong answer gets caught: finding the bug no one else finds, root-causing a failure other agents stalled on, reasoning through concurrency or a compiler rewrite, performance work against a benchmark, deep audits, 3D and image understanding, and operating professional software.
+- Don't use it for routine implementation or anything without a check. Opus 5.5 does ordinary work more reliably.
+- Give it a checkable endpoint: a failing test, a benchmark, a reproduction or a visible app state. Its highs show up when something verifies them, and its lows get caught before they spread.
+- Treat its findings as hypotheses with strong priors, not conclusions. Confirm each claim against the code or the running system before acting on it. When a result matters and can't be checked, get a second opinion from Fable or Opus rather than rerunning Astra.
+- Keep its task narrow. Hand it the hard part and let Opus do the surrounding plumbing. A long brief mixing hard and easy work gives the easy parts room to go wrong.
+- Difficult puzzles can still require hints. Distinguish solving the problem from looking up a published answer.
 - It can use a browser or desktop app to verify actual behavior, make a temporary tool to inspect results, edit images in Affinity, and set up and color-correct Final Cut projects. Give it the application, assets, target result, and a concrete way to check success. It is also strong at writing prompts for other agents.
 - UI/UX is a weak point despite better code and prose. It can invent a new brand, replace an existing interface during a port, add excessive labels and subtitles, and turn simple actions into complicated flows. For a migration, explicitly preserve the existing components, branding, navigation, and interaction sequence; define exactly which parts may change. Delegate new visual design to Opus 5.5 when that is the central task; use Fable 5.1 for an alternative design judgment.
 - It can stop after answering a question, making a local fix, starting subagents, or responding to a side request while the original task remains incomplete. Name the endpoint and keep it active across follow-ups. For authorized PR work, specify the whole loop: fix, verify, commit, push, wait for checks and reviews on the new commit, assess findings, and repeat until ready. Launching workers or making one pass is not completion.
@@ -163,7 +193,7 @@ Use this model for the specific strengths below when Opus 5.5, Fable 5 or GPT is
 
 ### Fable 5 and Sonnet behavior
 
-- Fable 5 is a specialist for intent interpretation, code cleanliness review, and selected implementation. It writes concise code that fits an existing system, interprets intent well, knows obscure platforms, and is useful for planning and orchestration. It can favor a clever workaround over addressing the whole problem, skip edge cases, or stop short while believing the result is good enough. Give it the required behavior and preservation constraints; ask the GPT reviewer to investigate missing cases and actual runtime behavior.
+- Fable 5's advantage over Opus 5.5 is breadth of knowledge: obscure platforms, niche libraries and specialized domains. It writes concise code that fits an existing system and interprets intent well. It can favor a clever workaround over addressing the whole problem, skip edge cases, or stop short while believing the result is good enough. Give it the required behavior and preservation constraints; ask the GPT reviewer to investigate missing cases and actual runtime behavior.
 - Sonnet 5 mainly runs thin wrappers when a Claude-only workflow needs to call GPT. Keep its brief mechanical and pass through the worker's artifacts without having the wrapper redesign the solution. Use low effort for the wrapper.
 
 ### GPT inside Claude Code workflows
