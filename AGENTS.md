@@ -58,7 +58,7 @@ When you do delegate:
 - Hand artifacts as **files, not pasted text**: write the task brief and the diff (`git diff -U10 BASE..HEAD > file`) to a scratch file and pass the path. Pasted context stays resident in your context forever; a file path costs nothing.
 - **Record the base SHA before dispatching an implementer.** Review and diff `BASE..HEAD`, never `HEAD~1`, which silently drops all but the last commit of a multi-commit task.
 - Multi-ticket runs keep a **progress ledger** (`.scratch/<feature-slug>/progress.md`, one line per completed ticket with its issue number and commit range, e.g. `Ticket #42: complete (a1b2c3d..d4e5f6a)`). After compaction, trust the ledger, the tracker's issue states, and `git log` over your own recollection. Never re-dispatch a ticket the ledger or tracker marks complete.
-- When a review wave returns findings, dispatch **one fix agent with the full findings list**, not one fixer per finding. Per-finding fixers each rebuild context and re-run suites.
+- When a review wave returns findings, dispatch one or more fix agents, each owning a group of findings in files no other fixer touches.
 - Never pre-judge findings in a reviewer's dispatch prompt ("don't flag X", "treat as minor at most"). Let the reviewer raise it, then adjudicate the finding yourself afterward.
 - A delegate's "success" report is a claim, not evidence: check the diff yourself before relaying it (see the `verification-before-completion` skill).
 
@@ -85,7 +85,7 @@ Run Sol at high by default and drop to medium for bounded, well-checked work. It
 
 ### Review routing
 
-Every review uses one Claude-side and one GPT-side reviewer. Each starts at its default and moves up independently when the change calls for it.
+Every part of a reviewed change gets at least one Claude-side and one GPT-side reviewer; the `review-loop` skill covers adding reviewers per area. Each starts at its default and moves up independently when the change calls for it.
 
 | Side | Default | Step up to |
 | --- | --- | --- |
