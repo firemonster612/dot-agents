@@ -71,10 +71,10 @@ Choose the model for the task before dispatch. These defaults apply when the use
 | Model | Concrete model ID | Effort | Role |
 | --- | --- | --- | --- |
 | Opus 5.5 | `claude-opus-5-5` | high | Default worker: code writing, visual design, routine debugging, refactors, explanations, evidence synthesis and product work. Default Claude-side reviewer |
-| Sonnet 5.5 | `claude-sonnet-5-5` | high | Investigation subagent that Opus or Fable dispatches: large-codebase deep dives, breakdowns and scoping of large changes, confirming a hunch about code or an API. Not a primary worker |
-| GPT-6 Sol | `gpt-6-sol` | high | Default GPT-side reviewer; Codex interactive default; supporting implementation and source exploration |
+| GPT-6.1 Sol | `gpt-6.1-sol` | high | Default GPT-side reviewer. Deep audits, defect hunting, root-causing, codebase investigation and scoping, triage, routine computer use. Don't use it to write code you plan to merge. Falls back to `gpt-6-sol` until the proxy serves it |
+| Sonnet 5.5 | `claude-sonnet-5-5` | high | Claude-side investigation subagent when GPT-6.1 Sol is unavailable or a Claude reading is wanted: deep dives, scoping large changes, confirming a hunch. Not a primary worker |
 | GPT-6 Luna | `gpt-6-luna` | high | Small noncoding tasks: extraction, classification, summarization and structured transformations with explicit acceptance criteria |
-| GPT-6 Astra | `gpt-6-astra` | high | Highest ceiling, uneven floor. Finding defects others miss, hard debugging, deep audits, demanding computer use |
+| GPT-6 Astra | `gpt-6-astra` | high | Highest ceiling, uneven floor. Step-up after GPT-6.1 Sol for the listed high-risk reviews and the hardest defects and mechanisms; 3D and image understanding |
 | Fable 5 | `claude-fable-5` | medium | Claude-side escalation when the task depends on knowledge Opus may lack: obscure platforms, niche libraries, specialized domains |
 | Fable 5.1 | `claude-fable-5-1` | high | Alternative design judgment; stalled PR recovery and coupled long-running work where its extra usage is justified |
 
@@ -82,7 +82,7 @@ Opus 5.5 is the default worker. There is plenty of Opus usage, so send ordinary 
 
 Fable 5 and Fable 5.1 are larger models with more pretraining, so they know more. Opus 5.5 behaves better: it follows instructions more closely, finishes the whole task and stops less often short of it. Choose Fable when the task needs knowledge Opus is likely missing, not because the task is hard or high-stakes.
 
-Run Sol at high by default and drop to medium for bounded, well-checked work. Its scores keep rising through xhigh, so use xhigh for a hard review before switching to Astra. Max is not reliably better than xhigh. Start Luna at high. Review the Code Style criteria separately from runtime correctness.
+Run GPT-6.1 Sol at high for reviews and audits and medium for bounded, well-checked work. It accepts low, medium, high, xhigh and max; medium is the API default and none or minimal are rejected. Early benchmarks have not shown a reliable gain from xhigh or max, so raise effort past high only for a defined hard phase. Start Luna at high. Review the Code Style criteria separately from runtime correctness.
 
 ### Review routing
 
@@ -91,9 +91,9 @@ Every part of a reviewed change gets at least one Claude-side and one GPT-side r
 | Side | Default | Step up to |
 | --- | --- | --- |
 | Claude | Opus 5.5 high | Fable 5 medium |
-| GPT | GPT-6 Sol high | GPT-6 Astra high |
+| GPT | GPT-6.1 Sol high | GPT-6 Astra high |
 
-Astra finds defects no other model finds, and it also misses things other models catch. That makes it the strongest second reviewer, never the only one. The Claude-side reviewer stays in every Astra review, and the dispatcher verifies Astra's findings in triage like any other. Step up to it when a missed defect would be expensive or the mechanism is hard to reason about. Examples:
+GPT-6.1 Sol is the default GPT-side reviewer and handles most reviews without Astra. Astra finds defects no other model finds, and it also misses things other models catch. That makes it the strongest second reviewer, never the only one. The Claude-side reviewer stays in every Astra review, and the dispatcher verifies Astra's findings in triage like any other. Step up to it when a missed defect would be expensive or the mechanism is hard to reason about. Examples:
 
 - Authentication, authorization, session handling or secrets.
 - Concurrency, locking, retries, queues, or async code where ordering and cancellation matter.
@@ -115,15 +115,15 @@ Decide from the actual change. Assess complexity and consequences separately: a 
 
 Give both fresh reviewers the pinned diff and requirements. Briefly state the selection and the concrete complexity or risk that motivated it, then dispatch without asking the user to choose models. Reassess if findings expose greater complexity or consequences, while keeping the existing review-pass limit. The implementing agent must not be its only reviewer. An explicit user choice of reviewer count, model or number of passes overrides this automatic selection; no override is required.
 
-Retain GPT-5.6 Sol, Terra and Luna, and Opus 5 only as explicit compatibility fallbacks. Read `references/model-routing-legacy.md` only when selecting an older model. Its notes describe those models, not their replacements. Sonnet 5.5 runs the thin wrapper when a Claude-only workflow cannot call GPT directly. Never use Haiku. When the requested model is unavailable, report the supported substitution.
+Retain GPT-6 Sol, GPT-5.6 Sol, Terra and Luna, and Opus 5 only as explicit compatibility fallbacks. If the proxy does not serve `gpt-6.1-sol` yet, use `gpt-6-sol` and report the substitution. Read `references/model-routing-legacy.md` only when selecting an older model. Its notes describe those models, not their replacements. Sonnet 5.5 runs the thin wrapper when a Claude-only workflow cannot call GPT directly. Never use Haiku. When the requested model is unavailable, report the supported substitution.
 
 ### Local usage and pricing
 
 The subscription pool is one Claude Max 20x account plus two Max 5x accounts, and one Codex Pro 5x account, behind a load-balancing proxy. Within included usage, both providers have zero incremental cash cost. Account capacity, resets and task completion still matter. A five-percent delta on a 5x account is not equivalent to the same delta on a 20x account.
 
-Standard API prices per million uncached input/cached input/output tokens are Opus 5.5 $4/$0.20/$20, Sonnet 5.5 $2/$0.20/$10, GPT-6 Sol $2/$0.20/$10 and GPT-6 Luna $0.10/$0.01/$0.50. API cache-write and processing premiums are separate. Fable 5.1 API input/cache-read/output prices are $10/$0.25/$50 per million tokens. These prices are not subscription meters.
+Standard API prices per million uncached input/cached input/output tokens are Opus 5.5 $4/$0.20/$20, Sonnet 5.5 $2/$0.20/$10, GPT-6.1 Sol $2/$0.10/$10, GPT-6 Sol $2/$0.20/$10 and GPT-6 Luna $0.10/$0.01/$0.50. GPT-6.1 Sol's cache reads cost half of GPT-6 Sol's, which matters most because agent runs are mostly cache reads. A GPT-6.1 Sol request over 272K input tokens costs 2x for input and 1.5x for output. API cache-write and processing premiums are separate. Fable 5.1 API input/cache-read/output prices are $10/$0.25/$50 per million tokens. These prices are not subscription meters.
 
-Standard Codex credits per million uncached input/cached input/output tokens are Astra 250/25/1,250, Sol 50/5/250 and Luna 2.5/0.25/12.5. For an identical token mix, Sol uses one-fifth Astra's credits and Luna one-twentieth Sol's. Model token demand and caching change per-task cost. Fast mode consumes 2.5x Standard Codex credits where available. Prefer Standard unless speed warrants the extra draw.
+Standard Codex credits per million uncached input/cached input/output tokens are Astra 250/25/1,250, GPT-6 Sol 50/5/250 and Luna 2.5/0.25/12.5. For an identical token mix, GPT-6 Sol uses one-fifth Astra's credits and Luna one-twentieth GPT-6 Sol's. Model token demand and caching change per-task cost. Fast mode consumes 2.5x Standard Codex credits where available. Prefer Standard unless speed warrants the extra draw. GPT-6.1 Sol's Codex credit rate is unmeasured. OpenAI changed how Pro subscription usage is counted at the GPT-6.1 launch, so re-measure Codex headroom instead of assuming earlier limits.
 
 Treat Claude per-model subscription depletion as unmeasured until account readings establish it. Report token-derived estimates separately from actual five-hour and weekly depletion. Preserve cache locality when the existing proxy supports it, and record the actual returned model when fallbacks occur. Never infer upstream identity solely from the requested model ID.
 
@@ -139,23 +139,32 @@ These are provisional launch-era observations. Revisit them after ordinary work 
 - Reports are usually clearer than Opus 5's. Use the user's existing writing preferences and ask for literal, concise status. Avoid adding repeated prose restrictions without a demonstrated need.
 - It is promising for browser games, Three.js and animation. Start with a working version and use a separate refinement phase if needed. Verify controls, frame behavior, lighting, transparency and flicker in the application.
 - Use Opus 5.5 for visual design, including marketing pages and frontend polish. The user reports strong results here. Fable 5.1 remains an alternative when a different design approach or further refinement is useful. For an existing product, preserve components, branding, navigation and interaction sequence and name the specific visual changes allowed.
-- It may miss issues in an exhaustive codebase review even when its own implementation is good. Keep an independent GPT reviewer; use Astra for deep audits.
+- It may miss issues in an exhaustive codebase review even when its own implementation is good. Keep an independent GPT reviewer; use GPT-6.1 Sol for deep audits.
 - Give multi-application tasks the relevant sources and applications explicitly. It can start acting before discovering context the brief left implicit.
 - The model's public API always uses adaptive thinking. Lower effort controls latency more reliably than instructions to stop thinking. Do not carry manual thinking budgets, disabled thinking, or forced tool selection into an integration without checking compatibility.
 - Progress updates can arrive in thinking blocks rather than text. An apparently silent run may be a client-rendering issue. Inspect supported progress output before blaming the model or adding repeated prompts.
 - Model switches do not guarantee preservation of prior thinking. Pass concrete artifacts and a short state summary to a fresh delegate. Use documented per-message effort changes if supported; changing top-level effort can invalidate cache.
 
-### GPT-6 Sol behavior and dispatch
+### GPT-6.1 Sol behavior and dispatch
 
-Use Sol for everyday and complex code work as well as bounded support. Keep its brief tied to a checkable endpoint. Specify repository conventions, the relevant compiler settings and verification command. Use high for a difficult bounded task; use Astra when the work needs stronger judgment or exhaustive reasoning.
+These are provisional launch-day observations from early-access testing. Revisit them after ordinary work on this setup.
 
-For strict TypeScript work, name the actual compiler flags and require the type checker, including `noUncheckedIndexedAccess` when the project uses it. For async work, require checks that observe pending work, scheduling after failure and the exact returned rejection. Inspect the assertions behind its test claims.
+Reach it through `delegate_task`, or `codex exec -m gpt-6.1-sol` per the `cli-subagents` skill; native Claude subagents cannot run it. Codex's interactive default in `~/.codex/config.toml` stays `gpt-6-sol` until the proxy lists `gpt-6.1-sol`.
 
-Keep the ordinary write-less and verification skills. Sol can write compact production code that fits an existing query architecture, but inspect cross-package type ownership and duplicated defaults. Ask it to reuse a named shared contract rather than restating filter shapes in every caller. New tests must compile and execute; an incorrect import can break a test while production code is sound. Assess cleanliness separately from runtime correctness. Judge long sessions, UI work and ambiguous product tasks by their actual artifacts; escalate when completeness or judgment is inadequate.
+- Its strength is review, audit and investigation. It keeps digging at a change until it finds what is wrong, and it checks by reading code and by driving the running app. In early testing it caught real regressions in a T3 Code PR that Opus 5.5 and Fable 5.1 had passed, matched Astra on a deep audit, and ranked first in a ten-model test of finding improvements in a codebase. On that deep audit it cost about half of Astra but more than Opus or Sonnet, which were far less thorough.
+- It is far less erratic than Astra. Its best results are not as strong, and tasks at the edge of its ability still produce odd behavior. Verify its findings in triage like any reviewer's.
+- Dispatch it for codebase investigation, scoping, root-causing and triage. It keeps context small, with roughly a third of Sonnet 5.5's average tokens read per request in one comparison, and it did three rounds of that work for about half the cost of one Sonnet round.
+- It can write code, but first drafts have had real bugs and its code has been harder to justify merging than Opus 5.5's. Keep Opus 5.5 as the author of code you plan to merge and have GPT-6.1 Sol review it.
+- Don't hand it long unattended builds or large rewrites. On a compiler port it ran for days and burned a lot of tokens without progress, and Opus 5.5 got the same port working. When its own process rules block progress, it sticks to them anyway and never asks for help. Give it a checkable endpoint and a stop condition, and tell it to report a blocker rather than keep looping.
+- Use it for dead-code and cleanup audits after long multi-agent work. It has found large amounts of abandoned code that the agent doing the work never noticed.
+- Frontend and product design are its weakest area. It fills interfaces with needless labels, subtitles and taglines, and shows no visual taste. In games, movement feels poor and frame rate suffers even when rendering detail is high. Send visual design, UI and game feel to Opus 5.5 or Fable 5.1. It does well at Blender modeling from a reference image over the CLI.
+- Computer use is close to Astra and good enough for everyday browser and desktop operation, including multi-step form filling across many tabs. Prefer it over Astra for routine computer use.
+- Operational judgment, such as managing the machine fleet, has produced occasional careless mistakes, as has Opus 5.5. Astra has been the most reliable there. Check its plan before it changes shared machines.
+- It generates tokens more slowly than GPT-6 Sol. Its token efficiency still makes whole tasks fast and cheap.
 
 ### GPT-6 Luna behavior and dispatch
 
-Use Luna for small noncoding tasks with a precise contract: extraction, classification, summarization, and structured data transformations. Give it the source, required output format and a finite correctness check. Do not route implementation, code review, architectural decisions or coupled migrations to Luna. Use Sol for supporting work requiring code judgment and Opus for ordinary implementation.
+Use Luna for small noncoding tasks with a precise contract: extraction, classification, summarization, and structured data transformations. Give it the source, required output format and a finite correctness check. Do not route implementation, code review, architectural decisions or coupled migrations to Luna. Use GPT-6.1 Sol for supporting work requiring code judgment and Opus for ordinary implementation.
 
 High is provisional for these noncoding roles. Tune effort against representative tasks; an optimal default has not been established. Its low per-token price does not establish time to completion or factual reliability. Evaluate reliability on representative noncoding tasks before expanding its role.
 
@@ -164,7 +173,8 @@ High is provisional for these noncoding roles. Tune effort against representativ
 
 Astra has broad pretraining like Fable and the strongest reasoning of any model here, but it is uneven. It can solve a problem nothing else solves and then fail at something simple in the same session. Fable is more consistent, and Opus 5.5 behaves better. Use Astra where its peak matters and a checker catches its low points.
 
-- Use it for work where one strong insight is worth a lot and a wrong answer gets caught: finding the bug no one else finds, root-causing a failure other agents stalled on, reasoning through concurrency or a compiler rewrite, performance work against a benchmark, deep audits, 3D and image understanding, and operating professional software.
+- GPT-6.1 Sol now handles most deep audits and routine computer use. It matched Astra on an early deep audit at about half the cost and is far less erratic. Reach for Astra when GPT-6.1 Sol has stalled or missed something, or when the task needs its 3D and image understanding.
+- Use it for work where one strong insight is worth a lot and a wrong answer gets caught: finding the bug no one else finds, root-causing a failure other agents stalled on, reasoning through concurrency or a compiler rewrite, performance work against a benchmark, 3D and image understanding, and operating professional software.
 - Don't use it for routine implementation or anything without a check. Opus 5.5 does ordinary work more reliably.
 - Give it a checkable endpoint: a failing test, a benchmark, a reproduction or a visible app state. Its highs show up when something verifies them, and its lows get caught before they spread.
 - Treat its findings as hypotheses with strong priors, not conclusions. Confirm each claim against the code or the running system before acting on it. When a result matters and can't be checked, get a second opinion from Fable or Opus rather than rerunning Astra.
@@ -185,7 +195,7 @@ Use this model for the specific strengths below when Opus 5.5, Fable 5 or GPT is
 
 - It is particularly useful for taking over stalled PRs that have become repeated review/fix loops, finding the important remaining issues, and finishing the change. It is a useful escalation for difficult streaming/projection bugs after other agents stall. Send the current branch, original intent, failed approaches, and full outstanding findings to one takeover agent.
 - It handles changes across package boundaries and can carry audit, cleanup, implementation, and review work through an extended task. Examples span server, web, desktop, and mobile packages, as well as cleanup ordered so deletions simplify later PRs. This is a reason to use 5.1 for a coupled change; keep the scope tied to the user's outcome.
-- Visual design and animation are specific strengths. Use it as an alternative for marketing pages, tasteful transitions, game movement and feedback, and Blender work when Opus 5.5 needs another design approach. Use Anthropic's frontend design skill for homepage work when available. Visual polish can coexist with awkward controls and incomplete details, so check the interaction as well as its appearance. Prefer Astra for general browser/desktop operation.
+- Visual design and animation are specific strengths. Use it as an alternative for marketing pages, tasteful transitions, game movement and feedback, and Blender work when Opus 5.5 needs another design approach. Use Anthropic's frontend design skill for homepage work when available. Visual polish can coexist with awkward controls and incomplete details, so check the interaction as well as its appearance. Prefer GPT-6.1 Sol for general browser/desktop operation.
 - It may run many tool calls with almost no progress text. Ask for brief progress updates when the user or orchestrator needs visibility; silence alone is not a hang.
 - Writing is generally clearer, with fewer stock phrases and unexplained jargon, but can become dense and long. Ask for literal language, shorter sentences, and paragraph breaks. Older blanket bans on formatting may now suppress useful structure. When summarizing sources, request marked quotations and attribution; it can reproduce passages without marking them as quotes.
 - It can still pause to ask whether to proceed, repair nearby code outside scope, or add too many tests. State the authorized endpoint, preservation constraints, and appropriate verification. For long tasks, identify what compaction must retain: decisions, outstanding work, constraints, and artifact locations.
@@ -196,8 +206,8 @@ Use this model for the specific strengths below when Opus 5.5, Fable 5 or GPT is
 
 These are provisional launch-week observations. Revisit them after ordinary work on this setup.
 
-- Dispatch it as an investigation subagent. Do not run it as the main session model or give it implementation work. Its strength is reading a large codebase and coming back with a clear analysis, a breakdown of what can land separately, a scoped plan, or confirmation of a specific behavior. On that kind of scoping task it beat Opus 5.5 at about half the cost and half the time. Astra plans better but takes about three times as long, so use Astra when plan quality is worth the wait. Defect-hunting audits stay with Astra.
-- For codebase investigation from a Claude-side dispatcher, pick Sonnet 5.5 over Sol. Sol was faster on the same task but scored about half as well.
+- Dispatch it as an investigation subagent. Do not run it as the main session model or give it implementation work. Its strength is reading a large codebase and coming back with a clear analysis, a breakdown of what can land separately, a scoped plan, or confirmation of a specific behavior. On that kind of scoping task it beat Opus 5.5 at about half the cost and half the time. Defect-hunting audits go to GPT-6.1 Sol.
+- GPT-6.1 Sol is now the first choice for codebase investigation. In early testing it placed first on a find-improvements task that cost Sonnet 5.5 about four times as much, and its audits were far more thorough than Sonnet's. Use Sonnet 5.5 when GPT-6.1 Sol is unavailable, when the work needs a native read-only subagent, or when you want a Claude reading alongside it.
 - Ordinary coding, long builds and frontend work belong to Opus 5.5. Sonnet uses more tokens per task than Opus, and cache reads cost the same on both. Most agentic tokens are cache reads, so like-for-like coding costs about as much as Opus or more. It generates tokens faster, but on a long build it still finished later than Opus.
 - Frontend design is a weak point. It ranks below Opus 5.5 and well below Fable 5.1, so route visual work to those models.
 - Run it at high, or xhigh for a hard investigation. Max makes token use explode and can lower quality through overthinking. Low is weak for real work, and medium loses more for Sonnet than it does for Opus.
@@ -213,6 +223,6 @@ These are provisional launch-week observations. Revisit them after ordinary work
 Use a thin Claude wrapper only when the workflow's model parameter cannot select GPT directly.
 
 - The wrapper uses `model: 'sonnet', effort: 'low'`, which runs Sonnet 5.5. Low is enough because the job is mechanical: keep the brief to running the worker and passing its artifacts through, so the wrapper never redesigns the solution. It reads `cli-subagents`, and runs `codex exec -m <chosen-gpt-model>` with a concrete supported model ID and explicit effort. Return the worker's report and artifacts; use `schema` for structured output where supported.
-- Label workers with the actual model, for example `gpt-6-astra:review-auth`, `gpt-6-sol:migrate-data`, or `gpt-6-luna:classify`. The wrapper's visible model is not the worker's model.
+- Label workers with the actual model, for example `gpt-6-astra:review-auth`, `gpt-6.1-sol:investigate-sync`, or `gpt-6-luna:classify`. The wrapper's visible model is not the worker's model.
 - Parallel implementation workers use `isolation: 'worktree'` or separate checkouts to avoid collisions.
 - Workflow token budgets count Claude wrapper usage, not the GPT worker's usage. Track that separately when a budget or account limit matters.

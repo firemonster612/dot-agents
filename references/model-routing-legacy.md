@@ -31,3 +31,12 @@ Favor bounded tasks over unsupervised work with ambiguous requirements. Review t
 
 - GPT-5.6 Sol is useful for focused execution, system tasks, and difficult mechanisms when the scope is clear. It is literal and produces too much code or tests or expands a fix. Give it explicit acceptance criteria and existing code examples, then use a Fable review for simplification and design quality. Its ratings and these observations are specific to Sol, not the whole GPT family.
 - GPT-5.6 Terra is the bounded supporting worker. Give it concrete inputs, files, and a checkable output; escalate when the task requires substantial inference or judgment. GPT-5.6 Luna is for short mechanical tasks with obvious correctness checks. Raising effort does not make either a substitute for Astra on hard autonomous work.
+
+## GPT-6 Sol behavior
+
+GPT-6 Sol is the fallback when the proxy does not serve `gpt-6.1-sol`. Run it at high and drop to medium for bounded, well-checked work. Its scores kept rising through xhigh, so use xhigh for a hard review before switching to Astra. Max was not reliably better than xhigh.
+
+- Use it for everyday and complex code work as well as bounded support. Keep its brief tied to a checkable endpoint. Specify repository conventions, the relevant compiler settings and verification command.
+- For strict TypeScript work, name the actual compiler flags and require the type checker, including `noUncheckedIndexedAccess` when the project uses it. For async work, require checks that observe pending work, scheduling after failure and the exact returned rejection. Inspect the assertions behind its test claims.
+- It can write compact production code that fits an existing query architecture, but inspect cross-package type ownership and duplicated defaults. Ask it to reuse a named shared contract rather than restating filter shapes in every caller. New tests must compile and execute; an incorrect import can break a test while production code is sound.
+- For codebase investigation, Sonnet 5.5 scored about twice as well as GPT-6 Sol on the same task.
