@@ -71,6 +71,7 @@ Choose the model for the task before dispatch. These defaults apply when the use
 | Model | Concrete model ID | Effort | Role |
 | --- | --- | --- | --- |
 | Opus 5.5 | `claude-opus-5-5` | high | Default worker: code writing, visual design, routine debugging, refactors, explanations, evidence synthesis and product work. Default Claude-side reviewer |
+| Sonnet 5.5 | `claude-sonnet-5-5` | high | Investigation subagent that Opus or Fable dispatches: large-codebase deep dives, breakdowns and scoping of large changes, confirming a hunch about code or an API. Not a primary worker |
 | GPT-6 Sol | `gpt-6-sol` | high | Default GPT-side reviewer; Codex interactive default; supporting implementation and source exploration |
 | GPT-6 Luna | `gpt-6-luna` | high | Small noncoding tasks: extraction, classification, summarization and structured transformations with explicit acceptance criteria |
 | GPT-6 Astra | `gpt-6-astra` | high | Highest ceiling, uneven floor. Finding defects others miss, hard debugging, deep audits, demanding computer use |
@@ -114,13 +115,13 @@ Decide from the actual change. Assess complexity and consequences separately: a 
 
 Give both fresh reviewers the pinned diff and requirements. Briefly state the selection and the concrete complexity or risk that motivated it, then dispatch without asking the user to choose models. Reassess if findings expose greater complexity or consequences, while keeping the existing review-pass limit. The implementing agent must not be its only reviewer. An explicit user choice of reviewer count, model or number of passes overrides this automatic selection; no override is required.
 
-Retain GPT-5.6 Sol, Terra and Luna, and Opus 5 only as explicit compatibility fallbacks. Read `references/model-routing-legacy.md` only when selecting an older model. Its notes describe those models, not their replacements. Sonnet remains a thin wrapper when a Claude-only workflow cannot call GPT directly. Never use Haiku. When the requested model is unavailable, report the supported substitution.
+Retain GPT-5.6 Sol, Terra and Luna, and Opus 5 only as explicit compatibility fallbacks. Read `references/model-routing-legacy.md` only when selecting an older model. Its notes describe those models, not their replacements. Sonnet 5.5 runs the thin wrapper when a Claude-only workflow cannot call GPT directly. Never use Haiku. When the requested model is unavailable, report the supported substitution.
 
 ### Local usage and pricing
 
 The subscription pool is one Claude Max 20x account plus two Max 5x accounts, and one Codex Pro 5x account, behind a load-balancing proxy. Within included usage, both providers have zero incremental cash cost. Account capacity, resets and task completion still matter. A five-percent delta on a 5x account is not equivalent to the same delta on a 20x account.
 
-Standard API prices per million uncached input/cached input/output tokens are Opus 5.5 $4/$0.20/$20, GPT-6 Sol $2/$0.20/$10 and GPT-6 Luna $0.10/$0.01/$0.50. API cache-write and processing premiums are separate. Fable 5.1 API input/cache-read/output prices are $10/$0.25/$50 per million tokens. These prices are not subscription meters.
+Standard API prices per million uncached input/cached input/output tokens are Opus 5.5 $4/$0.20/$20, Sonnet 5.5 $2/$0.20/$10, GPT-6 Sol $2/$0.20/$10 and GPT-6 Luna $0.10/$0.01/$0.50. API cache-write and processing premiums are separate. Fable 5.1 API input/cache-read/output prices are $10/$0.25/$50 per million tokens. These prices are not subscription meters.
 
 Standard Codex credits per million uncached input/cached input/output tokens are Astra 250/25/1,250, Sol 50/5/250 and Luna 2.5/0.25/12.5. For an identical token mix, Sol uses one-fifth Astra's credits and Luna one-twentieth Sol's. Model token demand and caching change per-task cost. Fast mode consumes 2.5x Standard Codex credits where available. Prefer Standard unless speed warrants the extra draw.
 
@@ -191,16 +192,27 @@ Use this model for the specific strengths below when Opus 5.5, Fable 5 or GPT is
 - Better reasoning does not eliminate confident mistakes about existing behavior. In a PR-linking audit it incorrectly denied automatic linking until corrected. Provide concrete terminology and require source evidence for assertions that a behavior does not exist.
 - Stronger delegation can multiply usage rapidly. Assign bounded work and the needed concurrency, and use cheaper GPT models for supporting tasks. Fable 5.1's ability to manage many agents is not a reason to make every worker Fable 5.1.
 
-### Fable 5 and Sonnet behavior
+### Sonnet 5.5 behavior and dispatch
+
+These are provisional launch-week observations. Revisit them after ordinary work on this setup.
+
+- Dispatch it as an investigation subagent. Do not run it as the main session model or give it implementation work. Its strength is reading a large codebase and coming back with a clear analysis, a breakdown of what can land separately, a scoped plan, or confirmation of a specific behavior. On that kind of scoping task it beat Opus 5.5 at about half the cost and half the time. Astra plans better but takes about three times as long, so use Astra when plan quality is worth the wait. Defect-hunting audits stay with Astra.
+- For codebase investigation from a Claude-side dispatcher, pick Sonnet 5.5 over Sol. Sol was faster on the same task but scored about half as well.
+- Ordinary coding, long builds and frontend work belong to Opus 5.5. Sonnet uses more tokens per task than Opus, and cache reads cost the same on both. Most agentic tokens are cache reads, so like-for-like coding costs about as much as Opus or more. It generates tokens faster, but on a long build it still finished later than Opus.
+- Frontend design is a weak point. It ranks below Opus 5.5 and well below Fable 5.1, so route visual work to those models.
+- Run it at high, or xhigh for a hard investigation. Max makes token use explode and can lower quality through overthinking. Low is weak for real work, and medium loses more for Sonnet than it does for Opus.
+- Brief it with the question, the repository and paths in scope, and the output you want back: findings with file:line evidence, or a plan with its seams named. Treat its conclusions as input to the dispatcher's plan, and have the dispatcher check load-bearing claims against the code.
+- Reach it through the read-only `s55-explore` agent (pinned to high), or through `delegate_task` or `claude -p --model claude-sonnet-5-5 --effort <level>` when you need xhigh. The `sonnet` alias maps to Sonnet 5.5 through `ANTHROPIC_DEFAULT_SONNET_MODEL` in `~/.claude/settings.json`. If a `sonnet` dispatch returns another model, check that setting.
+
+### Fable 5 behavior
 
 - Fable 5's advantage over Opus 5.5 is breadth of knowledge: obscure platforms, niche libraries and specialized domains. It writes concise code that fits an existing system and interprets intent well. It can favor a clever workaround over addressing the whole problem, skip edge cases, or stop short while believing the result is good enough. Give it the required behavior and preservation constraints; ask the GPT reviewer to investigate missing cases and actual runtime behavior.
-- Sonnet 5 mainly runs thin wrappers when a Claude-only workflow needs to call GPT. Keep its brief mechanical and pass through the worker's artifacts without having the wrapper redesign the solution. Use low effort for the wrapper.
 
 ### GPT inside Claude Code workflows
 
 Use a thin Claude wrapper only when the workflow's model parameter cannot select GPT directly.
 
-- The wrapper uses `model: 'sonnet', effort: 'low'`, reads `cli-subagents`, and runs `codex exec -m <chosen-gpt-model>` with a concrete supported model ID and explicit effort. Return the worker's report and artifacts; use `schema` for structured output where supported.
+- The wrapper uses `model: 'sonnet', effort: 'low'`, which runs Sonnet 5.5. Low is enough because the job is mechanical: keep the brief to running the worker and passing its artifacts through, so the wrapper never redesigns the solution. It reads `cli-subagents`, and runs `codex exec -m <chosen-gpt-model>` with a concrete supported model ID and explicit effort. Return the worker's report and artifacts; use `schema` for structured output where supported.
 - Label workers with the actual model, for example `gpt-6-astra:review-auth`, `gpt-6-sol:migrate-data`, or `gpt-6-luna:classify`. The wrapper's visible model is not the worker's model.
 - Parallel implementation workers use `isolation: 'worktree'` or separate checkouts to avoid collisions.
 - Workflow token budgets count Claude wrapper usage, not the GPT worker's usage. Track that separately when a budget or account limit matters.

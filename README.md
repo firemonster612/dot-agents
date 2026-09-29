@@ -12,6 +12,7 @@ ln -s ~/.agents/skills ~/.claude/skills
 ln -s ~/.agents/AGENTS.md ~/.claude/CLAUDE.md
 ln -s ~/.agents/AGENTS.md ~/.codex/AGENTS.md
 ln -s ~/.agents/claude/rules ~/.claude/rules
+ln -s ~/.agents/claude/agents ~/.claude/agents
 ```
 
 ## How to use
