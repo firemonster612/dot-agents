@@ -33,7 +33,7 @@ When uncertain, prefer: Tailwind, TypeScript, Bun, React, Convex, Clerk, Vercel.
 ## Behaviour
 
 - Do the work yourself or delegate it, whichever actually serves the task. You decide, per task. When I want subagents I'll ask for them.
-- always prefer your built-in subagent tools rather than calling subagents via the shell.
+- Prefer T3 Code's `delegate_task` tool over your harness's native subagent tools for spinning off subagents. The exception is a workflow: its agents are spawned by the workflow script, which can't call `delegate_task`. Make any other exception only for a strong, specific reason. When `delegate_task` isn't available, use native subagent tools, and shell out to a CLI only for a model they can't reach.
 - Whenever you are going to spin off another model, subagent, or workflow to do anything, always consult the model-selection rubric below on which model to choose. Do not default to your own native model family just because it is convenient.
 - always apply the `unslop` skill at the beginning of every chat
 - When writing instructions for agents, omit citations, bibliographies, and research narration. Verify the information before writing it as practical guidance.
@@ -64,7 +64,7 @@ When you do delegate:
 
 ## Picking the right models for workflows and subagents
 
-Choose the model for the task before dispatch. These defaults apply when the user has not chosen a model. Use native subagents when they support the selected model. Use the CLI only for a model native tools cannot reach. Pass a real supported model ID and an explicit effort level; never dispatch the family name `GPT` or invent a combined model-and-effort ID.
+Choose the model for the task before dispatch. These defaults apply when the user has not chosen a model. Dispatch through `delegate_task` per the Behaviour section. Pass a real supported model ID and an explicit effort level; never dispatch the family name `GPT` or invent a combined model-and-effort ID.
 
 ### Routing
 
