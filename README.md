@@ -45,8 +45,8 @@ Understanding the codebase: `how` for mechanism, `why` for rationale. Continuity
 
 **Doing the work** (worker-facing: load these when you're the one writing, and point delegates at them too)
 
-- [writing-code](skills/writing-code/SKILL.md): what to read, how to hold scope, how to test a scoped change
-- [reviewing-code](skills/reviewing-code/SKILL.md): the two review axes, what counts as a finding, the output shape
+- [writing-code](skills/writing-code/SKILL.md): what to read, how to hold scope, where code belongs, how to comment, test and fix review findings
+- [reviewing-code](skills/reviewing-code/SKILL.md): the three review axes (Standards, Spec, Design), what counts as a finding, the output shape
 - [tdd](skills/tdd/SKILL.md): test-driven development, red-green-refactor
 - [write-less](skills/write-less/SKILL.md): steering and review lens against over-engineering
 - [verification-before-completion](skills/verification-before-completion/SKILL.md): gate before claiming work is done; evidence over claims
@@ -55,7 +55,7 @@ Understanding the codebase: `how` for mechanism, `why` for rationale. Continuity
 
 **Review & dispatch**
 
-- [review-loop](skills/review-loop/SKILL.md): two independent reviewers on different model families, triage, one fixer, repeat
+- [review-loop](skills/review-loop/SKILL.md): independent reviewers on different model families, triage for truth and worth, parallel fixers, one repeat at most
 - [cli-subagents](skills/cli-subagents/SKILL.md): shelling out to a Codex or Claude subagent when no built-in subagent tool exists
 
 **Session continuity**
