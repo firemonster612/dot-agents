@@ -27,7 +27,7 @@ Gather the **spec** (the user's requirements, linked issues or PRs, a spec under
 
 One Claude-family and one GPT-family reviewer, each on the whole change, chosen through Review routing in `AGENTS.md`. For a large change that spans areas (server, client, migrations), give each area its own Claude and GPT pair instead.
 
-Name them and the reason in one sentence, then dispatch. Keep the same reviewers every round unless findings show more risk than you assessed, or the user overrides the choice. Then change that side through Review routing; the new reviewer takes over its side's findings, and the budget doesn't reset.
+Name them and the reason in one sentence, then dispatch. Keep the same reviewers every round unless findings show more risk than you assessed, or the user overrides the choice. Then change them as the user said, or for risk step that side up through Review routing; a new reviewer takes over its side's findings, and the budget doesn't reset.
 
 ## 3. Round 1
 
@@ -35,7 +35,7 @@ Dispatch every reviewer in parallel as a fresh read-only agent. Each gets `revie
 
 ## 4. Triage: respond and fix
 
-Keep a **ledger** file in a scratch directory: every finding with an ID, the reviewer that raised it, your response and its status (open, fixed, conceded by the reviewer, dropped by you). Merge duplicates and record both reviewers on them.
+Keep a **ledger** file in a scratch directory: every finding with an ID, the reviewer that raised it, your response and its status (open, fixed, conceded by the reviewer). Merge duplicates and record both reviewers on them.
 
 Open every cited hunk yourself, then give each finding one response:
 
@@ -43,7 +43,7 @@ Open every cited hunk yourself, then give each finding one response:
 - **Push back**, with the reason, on anything else: new options, fallbacks or validation nobody asked for, extra tests of covered behavior, restructuring code the change didn't touch, nits, and findings that don't survive contact with the code. Pushing back is your job; scope creep is the main way this loop goes wrong.
 - **Ask the user** when the finding is a choice between options that are each correct, such as a retry budget or a new API argument. In an unattended run, take the smallest option that keeps every caller working and say so in the ledger. If none does, record it as a blocker.
 
-Before the first fix of each round, record the base: `HEAD`, or for uncommitted work the SHA that `git add -A && git stash create` prints. The next round's diff is `git add -A && git diff --cached <base>`, so new files show.
+Before you respond each round, record the base: the SHA from `git rev-parse HEAD`, or for uncommitted work the SHA that `git add -A && git stash create` prints. The next round's diff is `git add -A && git diff --cached <base>`, so new files show. A round where you only pushed back sends an empty diff with your responses.
 
 Make the fixes yourself. On a large change you may hand fixes to fixers, one per group of files so no two touch the same file, each with `writing-code` as a path. You still own every response. A reviewer never fixes its own findings.
 
