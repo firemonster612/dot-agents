@@ -55,7 +55,7 @@ Understanding the codebase: `how` for mechanism, `why` for rationale. Continuity
 
 **Review & dispatch**
 
-- [review-loop](skills/review-loop/SKILL.md): independent reviewers on different model families, triage for truth and worth, parallel fixers, one repeat at most
+- [review-loop](skills/review-loop/SKILL.md): a Claude and a GPT reviewer argue their findings with the author round by round; the author fixes, 3 rounds by default
 - [cli-subagents](skills/cli-subagents/SKILL.md): shelling out to a Codex or Claude subagent when no built-in subagent tool exists
 
 **Session continuity**

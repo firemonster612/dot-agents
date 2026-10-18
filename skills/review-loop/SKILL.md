@@ -1,71 +1,71 @@
 ---
 name: review-loop
-description: Review a finished change in a loop with multiple model families. Use once, after a large batch of changes is complete, not after each small edit.
+description: Independent Claude and GPT review of a finished change, argued finding by finding with the author. Use when the user says review loop or sol loop, or when a finished change needs its independent review.
 ---
 
 # Review Loop
 
-Review is the one place where delegating is the point rather than a convenience. An agent reviewing its own implementation has already decided the code is right. Use independent reviewers here even when you'd do everything else yourself.
+You own the change. Two reviewers from different model families review it, because each family catches bugs the other misses. You fix what's right and push back on what's wrong. Each reviewer answers your pushback on its own findings. The loop ends when they agree or the budget runs out.
 
-Treat their output as **evidence, not orders**.
+Reviewers are evidence, not orders. The argument keeps both sides honest. A reviewer that hears your reason can concede a bad finding, and pushback you got wrong gets challenged with evidence instead of quietly standing. The goal is the smallest change that meets the intent: review makes it correct, not bigger.
 
-This skill is dispatcher-facing. It defines the loop: pin the target, dispatch reviewers, compile and triage their reports, dispatch fixers, repeat. How a reviewer conducts the review is `reviewing-code`'s job, and how a fixer works is `writing-code`'s. Hand those skills as paths; don't restate their content in dispatch prompts.
-
-**The loop is exactly one level deep.** You dispatch; reviewers and fixers are leaves. Every dispatch prompt carries the direct-work line: `Work directly; do not delegate to other agents.` Never invoke review-loop from inside a dispatched agent. A delegate that starts its own review loop recurses without bound.
-
-> If you have dynamic workflows (i.e. you're running in Claude Code or Pi), script this loop as a workflow. Otherwise run it by hand.
+**The loop is one level deep.** You dispatch; reviewers and fixers are leaves. Every dispatch prompt carries `Work directly; do not delegate to other agents, subagents, or codex.` Never run this skill from inside a dispatched agent.
 
 ## 1. Pin the target
 
-Resolve it once, and give every reviewer the identical command so they inspect the same change:
+Resolve it once and give every reviewer the same command in round 1:
 
-- **Branch or base ref:** verify with `git rev-parse <base>`, then `git diff <base>...HEAD` and `git log <base>..HEAD --oneline`. Three dots, so it compares against the merge-base.
-- **Commit:** verify the SHA, then `git show <sha>`.
-- **Uncommitted work:** `git status --porcelain` plus `git diff HEAD`, and name untracked files explicitly.
-- **Specific files:** the paths plus the comparison point.
+- **Branch:** verify `git rev-parse <base>`, then `git diff <base>...HEAD` and `git log <base>..HEAD --oneline`.
+- **Commit:** `git show <sha>`.
+- **Uncommitted work:** `git status --porcelain` plus `git diff HEAD`, naming untracked files.
 
-Fail early if the ref is invalid or the diff is empty. Don't make reviewers rediscover a bad target.
+Stop if the ref is invalid or the diff is empty.
 
-## 2. Gather the inputs
+Gather the **spec** (the user's requirements, linked issues or PRs, a spec under `docs/`, `specs/` or `.scratch/`) and the **standards** (scoped `AGENTS.md`/`CLAUDE.md`, `CONTRIBUTING.md`, `CONTEXT.md`, ADRs touching the area). With no reliable spec, tell reviewers to skip the Spec axis. Never reconstruct requirements from the implementation.
 
-**Spec**, in order of preference: requirements or a spec path the user supplied; issues or PRs referenced by the commit messages (via `docs/agents/issue-tracker.md` when present); a matching spec under `docs/`, `specs/`, or `.scratch/`. If no reliable spec exists, skip the Spec axis and report `No spec available`. Never reconstruct requirements from the implementation.
+## 2. Pick the reviewers
 
-**Standards:** every instruction that applies to the changed files, including scoped `AGENTS.md`/`CLAUDE.md`, `CONTRIBUTING.md`, coding standards, architecture docs, and test conventions, plus `CONTEXT.md` and the ADRs under `docs/adr/` touching the area.
+One Claude-family and one GPT-family reviewer, each on the whole change, chosen through Review routing in `AGENTS.md`. For a large change that spans areas (server, client, migrations), give each area its own Claude and GPT pair instead.
 
-## 3. Select and dispatch reviewers
+Name them and the reason in one sentence, then dispatch. Keep the same reviewers every round unless findings show more risk than you assessed, or the user overrides the choice. Then change them as the user said, or, for risk, step that side up through Review routing; a new reviewer takes over its side's findings, and the budget doesn't reset.
 
-**Every part of the change gets at least one Claude-side and one GPT-side reviewer, each covering all three axes.** Two reviewers on the whole change is the baseline. Add more when the change is broad, for example one reviewer per area of the code (server, client, migrations), with areas that together cover the whole diff.
+## 3. Round 1
 
-**Reviewers share none of your context.** Dispatch each one as a fresh agent, never a fork of your conversation, so it sees none of your reasoning, your earlier attempts, or your belief that the code is right. It gets only: the `reviewing-code` skill as a path, the pinned target command and commit list (plus its area, if you split by area), the inputs from step 2, and the direct-work line. The axes, finding shape, and smell baseline are `reviewing-code`'s to apply. No reviewer sees another's report. Keep all of them read-only.
+Dispatch every reviewer in parallel as a fresh read-only agent. Each gets `reviewing-code` as a path (`~/.claude/skills/reviewing-code/SKILL.md`), the pinned target, the spec and standards, its area if any, the direct-work line, and the closing line `End with VERDICT: approve or VERDICT: changes requested.` No reviewer sees another's report.
 
-Select each reviewer's model and effort through the review-routing guidance in `AGENTS.md`; an area reviewer can get a model suited to that area. Assess both the complexity of understanding the change and the consequences if something slips through. Use the actual diff, affected behavior, verification evidence and rollback constraints; line count alone is not a proxy for either. Keep cleanliness and maintainability in scope alongside correctness.
+## 4. Triage: respond and fix
 
-State the chosen reviewers and the reason in one short sentence, then dispatch. The user does not need to choose models or approve routine reviewer selection. Honor an explicit user override when one is supplied. Resolve supported model IDs and effort before dispatch, prefer native tools, and use `cli-subagents` only for models native tools cannot reach. If a model is unavailable, choose a supported alternative appropriate to the same work and report the substitution.
+Keep a **ledger** file in a scratch directory: every finding with an ID, the reviewer that raised it, your response and its status (open, fixed, conceded by the reviewer). Merge duplicates and record both reviewers on them.
 
-## 4. Triage: true, then worth fixing
+Open every cited hunk yourself, then give each finding one response:
 
-Compile all reports into one findings list, merging duplicates. Overlap is expected, and a finding raised by more than one reviewer is corroboration.
+- **Fix** a bug, a regression, a broken project rule, a missing requirement, scope the change added that the ask didn't, or a Design finding whose fix adds no behavior and only moves, renames, splits, deletes or comments the change's own code. Use `writing-code`'s smallest complete fix. Add a test only for a required behavior or bug fix that nothing exercises.
+- **Push back**, with the reason, on anything else: new options, fallbacks or validation nobody asked for, extra tests of covered behavior, restructuring code the change didn't touch, nits, and findings that don't survive contact with the code. Pushing back is your job; scope creep is the main way this loop goes wrong.
+- **Ask the user** when the finding is a choice between options that are each correct, such as a retry budget or a new API argument. In an unattended run, take the smallest option that keeps every caller working and say so in the ledger. If none does, record it as a blocker.
 
-**True.** Open every cited hunk yourself. Drop findings that don't survive contact with the code, and separate the ones you confirmed from the ones you couldn't verify. Relaying an unverified finding spends a whole fix cycle on nothing.
+Before you respond each round, record the base: the SHA from `git rev-parse HEAD`, or for uncommitted work the SHA that `git add -A && git stash create` prints. The next round's diff is `git add -A && git diff --cached <base>`, so new files show. A round where you only pushed back sends an empty diff with your responses.
 
-**Worth fixing.** A true finding is not yet a fix. Give each confirmed finding one decision, recorded with its reason:
+Make the fixes yourself. On a large change you may hand fixes to fixers, one per group of files so no two touch the same file, each with `writing-code` as a path. You still own every response. A reviewer never fixes its own findings.
 
-- **Fix**: a bug, a broken project rule, a missing requirement, a scope-creep finding, or a Design finding whose fix adds no behavior and only moves, renames, splits, flattens, deletes or comments the change's own code. A bug includes a regression (an input or caller that worked before the change and now fails) and a requested behavior that fails in a state a caller hits in ordinary use, such as the states `writing-code` lists. Judge that by the outcome the ask names, not by the mechanism the change chose; the fix makes the behavior correct and adds no retries, fallbacks or UI the ask didn't name. Also a test for a required behavior or bug fix that no test exercises, written once at the cheapest level.
-- **Decline**: everything else. For example: proposals that add scope (new behavior, options, fallbacks, validation that no requirement, trust boundary or correct answer needs), Optional items unless their fix deletes code, requests for extra tests of behavior that is already covered or unrequested, restructuring of code the change didn't touch, and Design fixes bigger than the code they restructure. Reviewers' Follow-ups are never fixed in this change; they go in the report.
-- **Ask the user**: a choice between options that are each correct, which nobody has made, such as a retry budget, a new API argument, a stricter admission rule or a recovery policy. A bug or a goal the spec states is never a question; it is Fix. When a user can answer, ask, and leave the choice out of the fix brief. In an unattended run, make a choice a Fix item depends on yourself: the smallest option that keeps every caller working, named in the fix brief and your report. If no option keeps every caller working, report it as a blocker. Other questions go in the report.
+## 5. Later rounds
 
-## 5. Dispatch fixers
+Dispatch each reviewer again in parallel, as in step 3, with the diff since the recorded base as its target. Each also gets only the findings it raised, each with your response. For each of its findings it accepts the fix, concedes your pushback, or holds its position with new evidence: a file and line, a failing input, a caller that breaks. Repeating the original claim is not evidence. It may also raise new problems in the fix diff. A held item stays open, and you respond to it as in step 4. A finding both reviewers raised closes when neither still holds it.
 
-Before dispatching, record the pre-fix state: the `HEAD` SHA, or for uncommitted work, stage everything (`git add -A`) and record the SHA `git stash create` prints. Round 2's target is `git add -A && git diff --cached <sha>` in either case, so files a fixer created show.
+## 6. Stop
 
-Dispatch one or more fixers for the **Fix** list, in parallel when that is faster. Give each fixer its own group of findings and files, so no two fixers edit the same file. A fixer whose fix needs a file another fixer owns reports it instead of editing it. Each fixer gets `writing-code` as a path, the direct-work line, and its findings, each with its axis, its severity and the smallest complete fix you expect: one that covers every case the finding names, never a narrower one. Hand over the findings as triaged, never "fix every finding" or a reviewer's raw report.
+- **Budget:** 3 rounds, or the count the user set. Extend to 5 only when open findings touch auth, permissions, secrets, security or data loss.
+- **Stop early** when every reviewer approves, or a round raises only nits.
+- **At the budget,** whatever is still open stays open. Record both positions in one line each; don't fix just to end the argument. A fix made after the last round is checked only by you; say so in the report.
 
-Read each fixer's diff against the fixes you expected. A fix that grew well past its expected size gets cut back, or its extra lines justified in the report.
+## 7. Report
 
-## 6. Repeat once at most
+Report the reviewers, rounds run, each reviewer's final verdict, findings fixed, pushback conceded, items still disputed with both positions, and the reviewers' Follow-ups, merged. Include the net lines the fixes added or removed.
 
-Round 2 reviews the fix diff only, with the same three axes. Give its reviewers the round-1 Fix list, each finding with its trigger, so they can check that each fix resolved its finding and stayed small. Fix only an unresolved round-1 finding, a bug, or a regression, scope creep or Design problem a fix introduced. The last round's fixes get no further review; list them in the report as checked only by you. Stop after 2 rounds, or the count the user set. Anything still open goes in the report as a known risk or a follow-up for the user to schedule. If findings reveal greater complexity or consequences than initially assessed, reselect reviewers through AGENTS.md for round 2. Changing models does not reset the limit.
+When you file or update a PR for this change, end its description with:
 
-## Reporting
+```
+Reviewed with review loop: <reviewer models>, <n> rounds, verdicts: <reviewer: approved | changes requested, ...>
+<one line per disputed item, if any>
+```
 
-Separate `## Standards`, `## Spec` and `## Design` sections. **Do not merge or rerank findings across axes.** They answer different questions, and a combined ranking hides which one failed. End each axis with its finding count and worst issue. Say so explicitly when an axis had no findings, and when the Spec axis was skipped for want of a spec, name the target that was reviewed instead. Then list the declined findings, the questions for the user, and the reviewers' Follow-ups (pre-existing bugs and design problems), merged and worst first, each in one line, and the net lines the fixes added or removed.
+State a verdict that isn't approve exactly as it is.
