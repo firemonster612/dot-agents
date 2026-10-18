@@ -27,7 +27,7 @@ Gather the **spec** (the user's requirements, linked issues or PRs, a spec under
 
 One Claude-family and one GPT-family reviewer, each on the whole change, chosen through Review routing in `AGENTS.md`. For a large change that spans areas (server, client, migrations), give each area its own Claude and GPT pair instead.
 
-Name them and the reason in one sentence, then dispatch. Keep the same reviewers every round unless findings show more risk than you assessed, or the user overrides the choice. Then change them as the user said, or for risk step that side up through Review routing; a new reviewer takes over its side's findings, and the budget doesn't reset.
+Name them and the reason in one sentence, then dispatch. Keep the same reviewers every round unless findings show more risk than you assessed, or the user overrides the choice. Then change them as the user said, or, for risk, step that side up through Review routing; a new reviewer takes over its side's findings, and the budget doesn't reset.
 
 ## 3. Round 1
 
