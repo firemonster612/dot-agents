@@ -56,6 +56,7 @@ Understanding the codebase: `how` for mechanism, `why` for rationale. Continuity
 **Review & dispatch**
 
 - [review-loop](skills/review-loop/SKILL.md): a Claude and a GPT reviewer argue their findings with the author round by round; the author fixes, 3 rounds by default
+- [full-send](skills/full-send/SKILL.md): say full send to own a change unattended through proof, review loop and PR to a squash merge; full stop stops when it's ready to merge
 - [cli-subagents](skills/cli-subagents/SKILL.md): shelling out to a Codex or Claude subagent when no built-in subagent tool exists
 
 **Session continuity**
