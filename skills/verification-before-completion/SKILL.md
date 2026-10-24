@@ -20,3 +20,12 @@ Tell-tale failure modes:
 - A passing suite covering none of the acceptance criteria: green tests, unverified claim.
 
 When verification cannot be run (missing environment, credentials, access), say exactly that, naming what you could not verify and why, instead of letting the claim stand in for the check.
+
+## What counts as proof
+
+Proof is evidence you observed in this session, the most direct the change allows:
+
+- For a bug, reproduce the failure, apply the fix, and watch the same reproduction pass.
+- Run the checks the repo's CI runs.
+- When the behavior has no test and the repo has a test setup, add one focused test that fails without the change.
+- For UI or runtime behavior, run the app and look at it. Green mocked tests don't prove what the user sees.
