@@ -51,7 +51,7 @@ When a fix breaks an earlier fix in the same mechanism, stop patching it. Rethin
 
 ## 5. Later rounds
 
-Dispatch each reviewer again in parallel, as in step 3, with the diff since the recorded base as its target. Each also gets a file holding only the findings it raised, with your response to each, cut from the ledger by a command rather than rewritten. It answers every one on its own line: `<ID> accepted` for a fix, `<ID> conceded` for your pushback, or `<ID> held: <evidence>`. Evidence is a failing test, a reproduction or a caller that breaks, each with its file and line; repeating the original claim is not evidence. It may also raise new problems in the fix diff. A held item stays open, and you respond to it as in step 4. A finding both reviewers raised closes when neither still holds it.
+Dispatch each reviewer again in parallel, as in step 3, with the diff since the recorded base as its target. Each also gets a file holding only the findings it raised, with your response to each, cut from the ledger by a command rather than rewritten. It answers every one on its own line: `<ID> accepted` for a fix, `<ID> conceded` for your pushback, or `<ID> held: <evidence>`. Evidence is a failing test, a reproduction or a caller that breaks, each with its file and line; for a document, a reproduction is the passage, quoted with its line, and the wrong action a reader would take from it. Repeating the original claim is not evidence. It may also raise new problems in the fix diff. A held item stays open, and you respond to it as in step 4. A finding both reviewers raised closes when neither still holds it.
 
 Keep arguing a held finding round by round until you and its reviewer agree.
 
