@@ -12,7 +12,7 @@ The user isn't watching this thread. They agreed on what to build and won't read
 
 If the user didn't say one of these, this skill doesn't apply; work as usual.
 
-Full send grants squash-merging the work's PRs and force-pushing their branches with `--force-with-lease`. Releasing, publishing and deploying are separate: do each only when the user asked for it or the repo's `AGENTS.md` says how.
+Full send grants squash-merging the work's PRs and force-pushing their branches with `--force-with-lease`. Releasing, publishing and deploying are separate: do each only when the user asked for it or the repo's `AGENTS.md` says to do it after a merge.
 
 ## Flow
 
@@ -22,7 +22,7 @@ Full send grants squash-merging the work's PRs and force-pushing their branches 
 4. **File the PR** against its base, the default branch or for a stacked PR the branch below it, with the proof and the review-loop footer in its description.
 5. **Watch the PR** with T3 Code's `watch_pull_request` when it's available, otherwise by polling `gh pr checks` and the PR's reviews. Fix failed checks, answer every review-bot and human comment, rebase on the base when it falls behind or conflicts, and push.
 6. **Finish at the merge gate** (below). Full send: squash-merge. Full stop: ask the user to merge.
-7. **Release or deploy** after a merge, only with the go-ahead above.
+7. **Release, publish or deploy** after a merge, only with the go-ahead above.
 8. **Report** the PR link, the merge commit or the ready state, the proof, and anything left open.
 
 ## Proof
@@ -45,7 +45,7 @@ Full send: the user authorized the squash merge; merge with `gh pr merge --squas
 
 ## Stacks
 
-When the work is a stack of PRs, the endpoint covers every layer, and each layer gets its own proof, review and gate. Full send merges from the bottom up: once a layer merges, retarget the next PR to the default branch, rebase it with `git rebase --onto <default> <old base>` because the squash merge left its old base's commits behind, and take it through the gate. Full stop ends with every layer ready. When the user wants the whole stack finished before anything merges, merge nothing until every layer passes its gate.
+When the work is a stack of PRs, the endpoint covers every layer, and each layer gets its own proof, review and gate. Full send merges from the bottom up. Before merging a layer, record its head SHA. Once it merges, retarget the next PR to the default branch, rebase it with `git rebase --onto <default> <recorded SHA>`, and take it through the gate. The squash merge leaves the old base's commits in the next branch, and the old base branch may be deleted on merge, so the recorded SHA is the reliable cut point. Full stop ends with every layer ready. When the user wants the whole stack finished before anything merges, merge nothing until every layer passes its gate.
 
 ## Asking the user
 

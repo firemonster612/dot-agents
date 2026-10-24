@@ -29,15 +29,13 @@ One Claude-family and one GPT-family reviewer, each on the whole change, chosen 
 
 Name them and the reason in one sentence, then dispatch. Keep the same reviewers every round unless findings show more risk than you assessed, or the user overrides the choice. Then change them as the user said, or, for risk, step that side up through Review routing; a new reviewer takes over its side's findings, and the budget doesn't reset.
 
-Every round waits for every reviewer. Under an agent cap, run them one after another rather than dropping one.
-
 ## 3. Round 1
 
-Dispatch every reviewer in parallel as a fresh read-only agent. Each gets `reviewing-code` as a path (`~/.claude/skills/reviewing-code/SKILL.md`), the pinned target, the spec and standards, its area if any, the direct-work line, and the closing line `End with VERDICT: approve or VERDICT: changes requested.` No reviewer sees another's report.
+Dispatch every reviewer in parallel as a fresh read-only agent. Every round waits for every reviewer: under an agent cap, run them one after another rather than dropping one. Each gets `reviewing-code` as a path (`~/.claude/skills/reviewing-code/SKILL.md`), the pinned target, the spec and standards, its area if any, the direct-work line, and the closing line `End with VERDICT: approve or VERDICT: changes requested.` No reviewer sees another's report.
 
 ## 4. Triage: respond and fix
 
-Keep a **ledger** file in a scratch directory: every finding with an ID, the reviewer that raised it, your response and its status (open, fixed, conceded by the reviewer). Merge duplicates and record both reviewers on them. The ledger is yours alone; each reviewer gets only its own rows from it (step 5).
+Keep a **ledger** file in a scratch directory: every finding with an ID, the reviewer that raised it, your response and its status (open, fixed, conceded by the reviewer). Merge duplicates and record both reviewers on them. The ledger is yours alone.
 
 Open every cited hunk yourself, then give each finding one response:
 
@@ -53,19 +51,19 @@ When a fix breaks an earlier fix in the same mechanism, stop patching it. Rethin
 
 ## 5. Later rounds
 
-Dispatch each reviewer again in parallel, as in step 3, with the diff since the recorded base as its target. Each also gets a file holding only the findings it raised, copied from the ledger with your response to each. It answers every one on its own line: `<ID> accepted` for a fix, `<ID> conceded` for your pushback, or `<ID> held: <evidence>`. Evidence is a file and line, a failing input, a caller that breaks; repeating the original claim is not evidence. It may also raise new problems in the fix diff. A held item stays open, and you respond to it as in step 4. A finding both reviewers raised closes when neither still holds it.
+Dispatch each reviewer again in parallel, as in step 3, with the diff since the recorded base as its target. Each also gets a file holding only the findings it raised, with your response to each, cut from the ledger by a command rather than rewritten. It answers every one on its own line: `<ID> accepted` for a fix, `<ID> conceded` for your pushback, or `<ID> held: <evidence>`. Evidence is a failing test, a reproduction or a caller that breaks, each with its file and line; repeating the original claim is not evidence. It may also raise new problems in the fix diff. A held item stays open, and you respond to it as in step 4. A finding both reviewers raised closes when neither still holds it.
 
-Keep arguing a held finding round by round until you and its reviewer agree. Evidence breaks a tie, never the user: a held finding backed by a failing test, a reproduction or a caller that breaks gets fixed; one without stays pushed back, with both positions in the report.
+Keep arguing a held finding round by round until you and its reviewer agree.
 
 ## 6. Stop
 
-- **Budget:** 3 rounds, or the count the user set. Extend to 5 only when open findings touch auth, permissions, secrets, security or data loss. Every dispatch of a reviewer counts toward it, whatever you call it: a recheck or a quick final check is a round.
+- **Budget:** 3 rounds, or the count the user set. Extend to 5 only when open findings touch auth, permissions, secrets, security or data loss. A round is one pass by every reviewer, whatever you call it: a recheck or a quick final check of any reviewer is a round.
 - **Stop early** when every reviewer approves, or a round raises only nits.
-- **At the budget,** settle each open finding by evidence as in step 5 and record both positions in one line each; don't fix just to end the argument. A fix made after the last round is checked only by you; say so in the report.
+- **At the budget,** evidence breaks each remaining tie, never the user: a held finding with evidence gets fixed, and one without stays pushed back. Record both positions in one line each; don't fix just to end the argument. A fix made after the last round is checked only by you; say so in the report.
 
 ## 7. Report
 
-Report the reviewers, rounds run, each reviewer's final verdict, the last commit any reviewer saw and the final commit, findings fixed, pushback conceded, items still disputed with both positions, and the reviewers' Follow-ups, merged. Include the net lines the fixes added or removed, leaving out committed evidence such as logs and screenshots.
+Report the reviewers, rounds run, each reviewer's final verdict, the last commit any reviewer saw and the final commit, findings fixed, pushback conceded, items still disputed with both positions, and the reviewers' Follow-ups, merged. Include the net lines the fixes added or removed.
 
 When you file or update a PR for this change, end its description with:
 

@@ -28,7 +28,7 @@ When uncertain, prefer: Tailwind, TypeScript, Bun, React, Convex, Clerk, Vercel.
 ## General preferences
 
 - If asked to do too much work at once, stop and state that clearly.
-- I have a short attention span, so keep replies to me skimmable: the answer first, then a few short bullets, and each decision I need to make as a one-line question. Put longer detail in a file and link it.
+- I have a short attention span, so keep replies to me skimmable: the answer first, then a few short bullets, and each decision I need to make as a one-line question. Put longer detail in a scratch file and link it.
 - If computer use is helpful for completing or verifying work, shell out to Codex for it.
 
 ## Behaviour
