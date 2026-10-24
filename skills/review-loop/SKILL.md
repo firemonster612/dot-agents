@@ -31,15 +31,15 @@ Name them and the reason in one sentence, then dispatch. Keep the same reviewers
 
 ## 3. Round 1
 
-Dispatch every reviewer in parallel as a fresh read-only agent. Each gets `reviewing-code` as a path (`~/.claude/skills/reviewing-code/SKILL.md`), the pinned target, the spec and standards, its area if any, the direct-work line, and the closing line `End with VERDICT: approve or VERDICT: changes requested.` No reviewer sees another's report.
+Dispatch every reviewer in parallel as a fresh read-only agent. Every round waits for every reviewer: under an agent cap, run them one after another rather than dropping one. Each gets `reviewing-code` as a path (`~/.claude/skills/reviewing-code/SKILL.md`), the pinned target, the spec and standards, its area if any, the direct-work line, and the closing line `End with VERDICT: approve or VERDICT: changes requested.` No reviewer sees another's report.
 
 ## 4. Triage: respond and fix
 
-Keep a **ledger** file in a scratch directory: every finding with an ID, the reviewer that raised it, your response and its status (open, fixed, conceded by the reviewer). Merge duplicates and record both reviewers on them.
+Keep a **ledger** file in a scratch directory: every finding with an ID, the reviewer that raised it, your response and its status (open, fixed, conceded by the reviewer). Merge duplicates and record both reviewers on them. The ledger is yours alone.
 
 Open every cited hunk yourself, then give each finding one response:
 
-- **Fix** a bug, a regression, a broken project rule, a missing requirement, scope the change added that the ask didn't, or a Design finding whose fix adds no behavior and only moves, renames, splits, deletes or comments the change's own code. Use `writing-code`'s smallest complete fix. Add a test only for a required behavior or bug fix that nothing exercises.
+- **Fix** a bug, a regression, a broken project rule, a missing requirement, scope the change added that the ask didn't, or a Design finding whose fix adds no behavior and only moves, renames, splits, deletes or comments the change's own code. Name that category in the ledger; a finding that fits none of them gets pushed back. Use `writing-code`'s smallest complete fix. Add a test only for a required behavior or bug fix that nothing exercises.
 - **Push back**, with the reason, on anything else: new options, fallbacks or validation nobody asked for, extra tests of covered behavior, restructuring code the change didn't touch, nits, and findings that don't survive contact with the code. Pushing back is your job; scope creep is the main way this loop goes wrong.
 - **Ask the user** when the finding is a choice between options that are each correct, such as a retry budget or a new API argument. In an unattended run, take the smallest option that keeps every caller working and say so in the ledger. If none does, record it as a blocker.
 
@@ -47,24 +47,28 @@ Before you respond each round, record the base: the SHA from `git rev-parse HEAD
 
 Make the fixes yourself. On a large change you may hand fixes to fixers, one per group of files so no two touch the same file, each with `writing-code` as a path. You still own every response. A reviewer never fixes its own findings.
 
+When a fix breaks an earlier fix in the same mechanism, stop patching it. Rethink that mechanism's design, record the decision in the ledger, and send the redesign through the next round.
+
 ## 5. Later rounds
 
-Dispatch each reviewer again in parallel, as in step 3, with the diff since the recorded base as its target. Each also gets only the findings it raised, each with your response. For each of its findings it accepts the fix, concedes your pushback, or holds its position with new evidence: a file and line, a failing input, a caller that breaks. Repeating the original claim is not evidence. It may also raise new problems in the fix diff. A held item stays open, and you respond to it as in step 4. A finding both reviewers raised closes when neither still holds it.
+Dispatch each reviewer again in parallel, as in step 3, with the diff since the recorded base as its target. Each also gets a file holding only the findings it raised, with your response to each, cut from the ledger by a command rather than rewritten. It answers every one on its own line: `<ID> accepted` for a fix, `<ID> conceded` for your pushback, or `<ID> held: <evidence>`. Evidence is a failing test, a reproduction or a caller that breaks, each with its file and line; for a document, a reproduction is the passage, quoted with its line, and the wrong action a reader would take from it. Repeating the original claim is not evidence. It may also raise new problems in the fix diff. A held item stays open, and you respond to it as in step 4. A finding both reviewers raised closes when neither still holds it.
+
+Keep arguing a held finding round by round until you and its reviewer agree.
 
 ## 6. Stop
 
-- **Budget:** 3 rounds, or the count the user set. Extend to 5 only when open findings touch auth, permissions, secrets, security or data loss.
+- **Budget:** 3 rounds, or the count the user set. Extend to 5 only when open findings touch auth, permissions, secrets, security or data loss. A round is one pass by every reviewer, whatever you call it: a recheck or a quick final check of any reviewer is a round.
 - **Stop early** when every reviewer approves, or a round raises only nits.
-- **At the budget,** whatever is still open stays open. Record both positions in one line each; don't fix just to end the argument. A fix made after the last round is checked only by you; say so in the report.
+- **At the budget,** evidence breaks each remaining tie, never the user: a held finding with evidence gets fixed, and one without stays pushed back. Record both positions in one line each; don't fix just to end the argument. A fix made after the last round is checked only by you; say so in the report.
 
 ## 7. Report
 
-Report the reviewers, rounds run, each reviewer's final verdict, findings fixed, pushback conceded, items still disputed with both positions, and the reviewers' Follow-ups, merged. Include the net lines the fixes added or removed.
+Report the reviewers, rounds run, each reviewer's final verdict, the last commit any reviewer saw and the final commit, findings fixed, pushback conceded, items still disputed with both positions, and the reviewers' Follow-ups, merged. Include the net lines the fixes added or removed.
 
 When you file or update a PR for this change, end its description with:
 
 ```
-Reviewed with review loop: <reviewer models>, <n> rounds, verdicts: <reviewer: approved | changes requested, ...>
+Reviewed with review loop: <reviewer models>, <n> rounds, last reviewed <sha>, final <sha>, verdicts: <reviewer: approved | changes requested, ...>
 <one line per disputed item, if any>
 ```
 

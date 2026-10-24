@@ -28,6 +28,7 @@ When uncertain, prefer: Tailwind, TypeScript, Bun, React, Convex, Clerk, Vercel.
 ## General preferences
 
 - If asked to do too much work at once, stop and state that clearly.
+- I have a short attention span, so keep replies to me skimmable: the answer first, then a few short bullets, and each decision I need to make as a one-line question. Put longer detail in a scratch file and link it.
 - If computer use is helpful for completing or verifying work, shell out to Codex for it.
 
 ## Behaviour
@@ -55,7 +56,7 @@ Don't delegate when writing the brief would cost more context than doing the wor
 When you do delegate:
 
 - Point delegates at the worker-facing skills (`writing-code`, `reviewing-code`) by path rather than transcribing their rules into the prompt. A delegate can read files, and a pasted contract drifts from the real one.
-- Hand artifacts as **files, not pasted text**: write the task brief and the diff (`git diff -U10 BASE..HEAD > file`) to a scratch file and pass the path. Pasted context stays resident in your context forever; a file path costs nothing.
+- Give a delegate what it can fetch itself as a command or path (`git diff BASE..HEAD`, a log file) rather than its contents. Write a brief to a file only when several dispatches share it.
 - **Record the base SHA before dispatching an implementer.** Review and diff `BASE..HEAD`, never `HEAD~1`, which silently drops all but the last commit of a multi-commit task.
 - Multi-ticket runs keep a **progress ledger** (`.scratch/<feature-slug>/progress.md`, one line per completed ticket with its issue number and commit range, e.g. `Ticket #42: complete (a1b2c3d..d4e5f6a)`). After compaction, trust the ledger, the tracker's issue states, and `git log` over your own recollection. Never re-dispatch a ticket the ledger or tracker marks complete.
 - When a review wave returns findings, dispatch one or more fix agents, each owning a group of findings in files no other fixer touches.
