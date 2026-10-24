@@ -45,7 +45,7 @@ Full send: the user authorized the squash merge; merge with `gh pr merge --squas
 
 ## Stacks
 
-When the work is a stack of PRs, the endpoint covers every layer, and each layer gets its own proof, review and gate. Full send merges from the bottom up. Before the first merge, record for each layer the head SHA of the layer below it, as it is now. Once a layer merges, retarget the next PR to the default branch, rebase it with `git rebase --onto <default> <its recorded SHA>`, and take it through the gate. The squash merge leaves the old base's commits in the next branch, the old base branch may be deleted on merge, and rebasing a layer rewrites the head its own child was built on, so only the SHAs recorded up front mark where each layer's own commits start. Full stop ends with every layer ready. When the user wants the whole stack finished before anything merges, merge nothing until every layer passes its gate.
+When the work is a stack of PRs, the endpoint covers every layer, and each layer gets its own proof, review and gate. Full send merges from the bottom up. Before the first merge, record for each layer the head SHA of the layer below it: that is where the layer's own commits start. Rebase a layer only with `git rebase --onto <new base> <its recorded SHA>`, then record the new base's head as its SHA. Once a layer merges, retarget the next PR to the default branch, rebase it that way onto the default branch, and take it through the gate. A plain rebase would replay the merged layer's commits, which the squash merge already put on the default branch. Full stop ends with every layer ready. When the user wants the whole stack finished before anything merges, merge nothing until every layer passes its gate.
 
 ## Asking the user
 
